@@ -1,33 +1,53 @@
 import { stripHiddenCharacters } from '../hidden-characters';
 import { findVerseReferences } from '../verse-rules';
 import { targetsFor } from './note-names';
-import { findProtectedRanges, overlapsAny } from './protected-ranges';
+import {
+	DEFAULT_IGNORE_RULES,
+	findProtectedRanges,
+	overlapsAny,
+	skippedRegions,
+	type IgnoreRules,
+} from './protected-ranges';
+import { standardizeLinks } from './standardize';
 
 /** Replace `[from, to)` of the original text with `insert`. */
 export type TextEdit = { from: number; to: number; insert: string };
 
+export type ConversionOptions = {
+	ignore: IgnoreRules;
+	/** Show references in standard form, including in links already converted. */
+	standardizeReferences: boolean;
+};
+
+export const DEFAULT_CONVERSION_OPTIONS: ConversionOptions = {
+	ignore: DEFAULT_IGNORE_RULES,
+	standardizeReferences: false,
+};
+
 export type Conversion = {
 	/** In ascending order, never overlapping. */
 	edits: TextEdit[];
-	/** One parent chain per edit, the linked note first. */
+	/** One parent chain per converted reference, the linked note first. */
 	chains: string[][];
+	/** How many existing links had their visible text standardized. */
+	standardized: number;
 };
 
 /**
  * Every plain-text reference in a note, as the edits that turn it into alias
- * wikilinks.
+ * wikilinks -- plus, when standardizing, the edits that tidy existing links.
  *
  * Detection runs on the text with its invisible characters taken out, because
  * one inside a reference hides it (`hidden-characters.ts`). The edits are mapped
  * back onto the original text, so only the references themselves change -- an
  * invisible character anywhere else stays where it was.
  */
-export function convertText(text: string): Conversion {
+export function convertText(text: string, options: ConversionOptions = DEFAULT_CONVERSION_OPTIONS): Conversion {
 	const cleaned = stripHiddenCharacters(text);
 	const toOriginal = offsetMap(text, cleaned);
-	const protectedRanges = findProtectedRanges(cleaned);
+	const protectedRanges = findProtectedRanges(cleaned, options.ignore);
 
-	const conversion: Conversion = { edits: [], chains: [] };
+	const conversion: Conversion = { edits: [], chains: [], standardized: 0 };
 	let convertedUpTo = 0;
 
 	for (const match of findVerseReferences(cleaned)) {
@@ -35,15 +55,26 @@ export function convertText(text: string): Conversion {
 		if (overlapsAny(protectedRanges, match.start, match.end)) continue;
 
 		for (const target of targetsFor(match)) {
+			const alias = options.standardizeReferences ? target.standard : target.alias;
 			conversion.edits.push({
 				from: toOriginal(target.from),
 				to: toOriginal(target.to - 1) + 1,
-				insert: `[[${target.chain[0] ?? ''}|${target.alias}]]`,
+				insert: `[[${target.chain[0] ?? ''}|${alias}]]`,
 			});
 			conversion.chains.push(target.chain);
 		}
 
 		convertedUpTo = match.end;
+	}
+
+	if (options.standardizeReferences) {
+		const linkEdits = standardizeLinks(cleaned, skippedRegions(cleaned, options.ignore));
+		for (const edit of linkEdits) {
+			conversion.edits.push({ ...edit, from: toOriginal(edit.from), to: toOriginal(edit.to - 1) + 1 });
+		}
+		conversion.standardized = linkEdits.length;
+		// Links never overlap a converted reference (links are protected), so sorting is enough.
+		conversion.edits.sort((a, b) => a.from - b.from);
 	}
 
 	return conversion;

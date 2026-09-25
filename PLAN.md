@@ -177,3 +177,43 @@ cursor-moved workspace event; the caret is followed with a CodeMirror 6 `updateL
       overlapping group; a paragraph with two verse links (stacked, and single with the caret on
       one); the panel opens without taking focus, stays when the caret moves off, comes back after
       closing; typing inside a link does nothing; the command and ribbon open it
+
+---
+
+# Settings: standardize references, and skipped text
+
+Brings two items that CLAUDE.md had listed as out of scope into scope, at the user's request:
+the "Reformat-references / citation-style feature" and the "Ignore-pattern configuration UI".
+
+## A. Standardize references
+- [x] CLAUDE.md: taken off the out-of-scope list; toggle and rules described
+- [x] `src/bible-link.ts` (moved from `src/context/`): adds `parseReference`, `samePassage`, and
+      each reference's `book` and `passage`; shared by the panel and conversion
+- [x] `note-names.ts`: each `LinkTarget` carries its standard text (`30:22` after a semicolon)
+- [x] `src/conversion/standardize.ts`: rewrites the visible text of existing verse and chapter
+      links — only text that is itself the same passage, bare links, or short continuations;
+      never embeds, headings-only bare links, or skipped regions; targets never change
+- [x] `convert-text.ts`: `convertText(text, options)`; standard text for new links when on;
+      counts standardized links apart from converted references
+- [x] `run-conversion.ts`: settings passed through; summary adds "and standardized N links"
+- [x] General toggle "Standardize references", off by default
+- [x] Tests: `standardize.test.ts` (every example, what's left alone, second run, counts) and a
+      whole-run test in `run-conversion.test.ts`
+
+## B. Skipped text
+- [x] CLAUDE.md: taken off the out-of-scope list; switches, markers and always-on links described
+- [x] `protected-ranges.ts`: `IgnoreRules` (six switches + marker pairs), `DEFAULT_IGNORE_RULES`
+      (all on), `skippedRegions`, `markerRanges`; links always protected. Inline code no longer
+      matches a fenced block, so the two switches are independent
+- [x] `src/settings-data.ts` (split from `settings.ts` so it can be tested): the new settings and
+      `withDefaults`, which fills in switches missing from settings saved by 1.0.0
+- [x] Settings section "Convert commands: Skipped Text": the six switches, "Your own markers"
+      with **Add marker pair** and a remove button per pair
+- [x] Tests: `ignore-rules.test.ts` (each switch, links with everything off, markers) and
+      `settings-data.test.ts`
+
+## Docs, testing and release
+- [x] README (Standardize references, What conversion skips, Settings), CHANGELOG
+- [x] `npm run check`: build, lint 0 errors (the 10 known warnings), 202/202 tests
+- [ ] Manual, in the test vault: `Standardize.md` and `Skipped text.md` in the UAT kit
+- [ ] Release 1.1.0: `npm version minor`, `git push --follow-tags`, `npm run release`

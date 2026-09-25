@@ -32,3 +32,11 @@ describe('reading a link as a Bible reference', () => {
 		expect(parseBibleLink('Jonah 9')).toBeNull();
 	});
 });
+
+describe('the parts of a reference', () => {
+	it('gives the book and the passage without it', () => {
+		expect(parseBibleLink('Psalms 23 1')).toMatchObject({ book: 'Psalms', passage: '23:1' });
+		expect(parseBibleLink('1 Samuel 3')).toMatchObject({ book: '1 Samuel', passage: '3' });
+		expect(parseBibleLink('Song of Solomon 2 4')).toMatchObject({ passage: '2:4' });
+	});
+});

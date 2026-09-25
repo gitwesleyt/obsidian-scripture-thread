@@ -1,5 +1,5 @@
 import type { CachedMetadata, Reference, ReferenceCache } from 'obsidian';
-import { parseBibleLink, type BibleLink } from './bible-link';
+import { parseBibleLink, samePassage, type BibleLink } from '../bible-link';
 import { linkpathOf } from './links-at-cursor';
 import { paragraphAt, type Paragraph } from './paragraph';
 
@@ -80,12 +80,8 @@ function relatedDestinations(source: MentionSource, target: BibleLink): Map<stri
 }
 
 function matchKind(link: BibleLink, target: BibleLink): MatchKind | null {
-	if (sameKeys(link.keys, target.keys)) return 'exact';
+	if (samePassage(link, target)) return 'exact';
 	return link.keys.some((key) => target.keys.includes(key)) ? 'overlapping' : null;
-}
-
-function sameKeys(a: string[], b: string[]): boolean {
-	return a.length === b.length && a.every((key) => b.includes(key));
 }
 
 const UNRESOLVED = /^unresolved:/;
