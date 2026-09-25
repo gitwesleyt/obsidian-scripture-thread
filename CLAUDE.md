@@ -68,9 +68,10 @@ Detect plain-text Bible references (e.g. `Psalm 23:3`) and convert them to wikil
 - **Text inside `{...}` is skipped by default** — that's another installed plugin's (Bible Verse)
   live rendering syntax, not something to convert. The user can switch that off (below).
 - **Skipped text, a setting.** Each built-in rule has an on/off switch, all on by default:
-  `{...}` curly-brace blocks, callout blocks, code blocks, inline code, YAML frontmatter, and
-  Bible Reference's `--John1:1` syntax. Users can add their own **start/end marker pairs** (plain
-  text, not regex; an empty end means end of line; an unclosed start runs to the end of the note).
+  `{...}` curly-brace blocks, callout blocks, code blocks, inline code, Obsidian `%%comments%%`,
+  YAML frontmatter, and Bible Reference's `--John1:1` syntax. Users can add their own
+  **start/end marker pairs** (plain text, not regex; an empty end means end of line; an unclosed
+  start runs to the end of the note).
   **Existing wikilinks/embeds and markdown links are always skipped** — not switchable — so
   re-running is safe. Applies to all three commands.
 - Conversion produces the linked note **structure only** — do not populate new verse notes with

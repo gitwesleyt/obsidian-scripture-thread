@@ -16,6 +16,7 @@ export type IgnoreRules = {
 	frontmatter: boolean;
 	codeBlocks: boolean;
 	inlineCode: boolean;
+	comments: boolean;
 	callouts: boolean;
 	curlyBraces: boolean;
 	bibleReferenceSyntax: boolean;
@@ -26,6 +27,7 @@ export const DEFAULT_IGNORE_RULES: IgnoreRules = {
 	frontmatter: true,
 	codeBlocks: true,
 	inlineCode: true,
+	comments: true,
 	callouts: true,
 	curlyBraces: true,
 	bibleReferenceSyntax: true,
@@ -54,6 +56,7 @@ export function skippedRegions(text: string, rules: IgnoreRules): Range[] {
 		...(rules.callouts ? calloutBlocks(lines) : []),
 		...(rules.curlyBraces ? curlyBraceBlocks(text) : []),
 		...(rules.inlineCode ? inlineCode(text, fences) : []),
+		...(rules.comments ? markerRanges(text, OBSIDIAN_COMMENT) : []),
 		...(rules.bibleReferenceSyntax ? matchesOf(BIBLE_REFERENCE_SYNTAX, text) : []),
 		...rules.markers.flatMap((pair) => markerRanges(text, pair)),
 	];
@@ -67,6 +70,9 @@ function inlineCode(text: string, fences: readonly Range[]): Range[] {
 function linkRanges(text: string): Range[] {
 	return [...matchesOf(WIKILINK, text), ...matchesOf(MARKDOWN_LINK, text)];
 }
+
+// Obsidian hides `%%...%%`, and an unclosed `%%` hides the rest of the note, as markers do.
+const OBSIDIAN_COMMENT: MarkerPair = { start: '%%', end: '%%' };
 
 /** An unclosed start runs to the end of the note, like an unclosed code fence. */
 export function markerRanges(text: string, { start, end }: MarkerPair): Range[] {

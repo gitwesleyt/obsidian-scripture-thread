@@ -202,18 +202,19 @@ the "Reformat-references / citation-style feature" and the "Ignore-pattern confi
 
 ## B. Skipped text
 - [x] CLAUDE.md: taken off the out-of-scope list; switches, markers and always-on links described
-- [x] `protected-ranges.ts`: `IgnoreRules` (six switches + marker pairs), `DEFAULT_IGNORE_RULES`
-      (all on), `skippedRegions`, `markerRanges`; links always protected. Inline code no longer
-      matches a fenced block, so the two switches are independent
+- [x] `protected-ranges.ts`: `IgnoreRules` (seven switches, including Obsidian `%%comments%%`,
+      plus marker pairs), `DEFAULT_IGNORE_RULES` (all on), `skippedRegions`, `markerRanges`; links
+      always protected. Inline code no longer matches a fenced block, so the two switches are
+      independent
 - [x] `src/settings-data.ts` (split from `settings.ts` so it can be tested): the new settings and
       `withDefaults`, which fills in switches missing from settings saved by 1.0.0
-- [x] Settings section "Convert commands: Skipped Text": the six switches, "Your own markers"
+- [x] Settings section "Convert commands: Skipped Text": the seven switches, "Your own markers"
       with **Add marker pair** and a remove button per pair
 - [x] Tests: `ignore-rules.test.ts` (each switch, links with everything off, markers) and
       `settings-data.test.ts`
 
 ## Docs, testing and release
 - [x] README (Standardize references, What conversion skips, Settings), CHANGELOG
-- [x] `npm run check`: build, lint 0 errors (the 10 known warnings), 202/202 tests
+- [x] `npm run check`: build, lint 0 errors (the 10 known warnings), 203/203 tests
 - [ ] Manual, in the test vault: `Standardize.md` and `Skipped text.md` in the UAT kit
 - [ ] Release 1.1.0: `npm version minor`, `git push --follow-tags`, `npm run release`
