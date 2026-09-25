@@ -84,17 +84,25 @@ export class VerseContextView extends ItemView {
 
 	private renderVerse(verse: VerseMentions): void {
 		const section = this.contentEl.createDiv({ cls: 'scripture-thread-verse' });
-		section.createEl('h3', { text: verse.reference });
+		section.createEl('h3', { text: verse.reference, cls: 'scripture-thread-verse-title' });
 
-		section.createEl('h4', { text: 'This verse' });
+		const exact = this.renderGroup(section, 'This verse', verse.exact.length);
 		if (verse.exact.length === 0) {
-			section.createEl('p', { text: 'No other notes link here yet.', cls: 'scripture-thread-muted' });
+			exact.createEl('p', { text: 'No other notes link here yet.', cls: 'scripture-thread-muted' });
 		}
-		for (const note of verse.exact) this.renderNote(section, note, false);
+		for (const note of verse.exact) this.renderNote(exact, note, false);
 
 		if (verse.overlapping.length === 0) return;
-		section.createEl('h4', { text: 'Overlapping passages' });
-		for (const note of verse.overlapping) this.renderNote(section, note, true);
+		const overlapping = this.renderGroup(section, 'Overlapping passages', verse.overlapping.length);
+		for (const note of verse.overlapping) this.renderNote(overlapping, note, true);
+	}
+
+	/** A group heading with its note count, and the indented container its notes go in. */
+	private renderGroup(parent: HTMLElement, title: string, noteCount: number): HTMLElement {
+		const heading = parent.createEl('h4', { cls: 'scripture-thread-group-title' });
+		heading.createSpan({ text: title });
+		heading.createSpan({ text: String(noteCount), cls: 'scripture-thread-count' });
+		return parent.createDiv({ cls: 'scripture-thread-group' });
 	}
 
 	private renderNote(parent: HTMLElement, note: NoteMentions, showLinkedAs: boolean): void {
@@ -104,7 +112,9 @@ export class VerseContextView extends ItemView {
 
 		for (const mention of note.mentions) {
 			const mentionEl = noteEl.createDiv({ cls: 'scripture-thread-mention' });
-			if (showLinkedAs) mentionEl.createDiv({ text: mention.linkedAs, cls: 'scripture-thread-muted' });
+			if (showLinkedAs) {
+				mentionEl.createDiv({ text: `Links to ${mention.linkedAs}`, cls: 'scripture-thread-muted' });
+			}
 
 			if (mention.text === null) {
 				mentionEl.createDiv({ text: 'Linked in properties', cls: 'scripture-thread-muted' });
