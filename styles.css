@@ -1,8 +1,15 @@
-/*
+/* A setting whose control sits under its name and description, full width. */
+.scripture-thread-stacked-setting {
+	flex-wrap: wrap;
+}
 
-This CSS file will be included with your plugin, and
-available in the app when your plugin is enabled.
+.scripture-thread-stacked-setting .setting-item-control {
+	flex-basis: 100%;
+	justify-content: flex-start;
+	margin-top: var(--size-4-2);
+}
 
-If your plugin does not need CSS, delete this file.
-
-*/
+.scripture-thread-stacked-setting textarea {
+	width: 100%;
+	resize: vertical;
+}

@@ -24,29 +24,43 @@ referencing that verse, with the containing paragraph's actual text visible per 
 Detect plain-text Bible references (e.g. `Psalm 23:3`) and convert them to wikilinks on demand
 (not live-as-you-type), auto-creating the linked note and its parent chain.
 
-- `Psalm 23:3` → `[[Psalm 23 3|Psalm 23:3]]` — **use the alias form**, not a bare `[[Psalm 23 3]]`.
-  The colon must stay visible in rendered text for compatibility with other reference-detection
-  plugins (conVERsum) that may rely on it.
-- Auto-create parent notes up the chain: `Psalm 23` note links to `Psalm` note (or however the
-  ported parent-chain logic defines it — see ported files below).
+- `Psalm 23:3` → `[[Psalms 23 3|Psalm 23:3]]` — **use the alias form**, not a bare `[[Psalms 23 3]]`.
+  The alias is the text **exactly as typed**, so the colon stays visible in rendered text for
+  compatibility with other reference-detection plugins (conVERsum) that may rely on it.
+- **Note file names match the user's existing vaults** (created by their old script): plural
+  canonical book name, with a space between chapter and verse because file names can't contain
+  `:`. Examples: `Psalms 23 3`, `Psalms 23`, `Psalms`, `John 3 16-18`, `Matthew 6 1-3,7`,
+  `Matthew 5-7`. A mismatch would duplicate notes and split backlinks.
+- Auto-create parent notes up the chain: verse or range → chapter → book → `Old Testament` /
+  `New Testament` (chapter ranges link straight to the book). A new note's body is its
+  `[[parent]]` link; testament notes are created empty. An existing note with the same name
+  anywhere in the vault is reused and never modified.
+- A semicolon reference gets one link per chapter:
+  `[[Proverbs 17 7|Proverbs 17:7]]; [[Proverbs 30 22|30:22]]`.
+- Everything the detector finds is converted, lowercase book names included — no extra filter.
 - Three separate commands, each independently hotkey-able:
   1. Convert references in **this document**
-  2. Convert references in **a folder** (folder path set in settings; optional right-click on a
-     folder in the file explorer for one-offs)
+  2. Convert references in **a folder** — which folder is a setting with two options, *Same
+     folder as current file* or *In the folder specified below* (picker shown only for that
+     option); refuses when the current note is in the vault root, since that would be a vault-wide
+     run without the confirmation. Also a right-click item on any folder in the file explorer.
   3. Convert references in **the entire vault** — requires a confirmation step and a progress
      indicator before running; this is a one-way, potentially large operation.
 - **Do not touch text inside `{...}`** — that's another installed plugin's (Bible Verse) live
   rendering syntax, not something to convert.
 - Default ignore list for the conversion scan: `{...}` curly-brace blocks, callout blocks, code
-  blocks/inline code, YAML frontmatter.
+  blocks/inline code, YAML frontmatter — plus existing wikilinks/embeds (so re-running is safe),
+  markdown links, and Bible Reference's `--John1:1` syntax.
 - Conversion produces the linked note **structure only** — do not populate new verse notes with
   actual scripture text. That's out of scope (see below).
-- **Setting: parent notes root folder.** A plugin setting where the user picks the folder that
-  auto-created parent-chain notes (chapter, book, etc.) get created in — e.g. `Bible/`, rather
-  than hardcoding the vault root or wherever the triggering note happens to live. Applies to all
-  three conversion commands; the individual verse note itself is still created next to (or per
-  existing script behavior relative to) the reference's source note — only the parent-chain notes
-  respect this setting.
+- **Setting: location for new notes.** Mirrors Obsidian's own "Default location for new notes":
+  *Vault folder*, *Same folder as current file* (for folder/vault runs, each note being
+  converted), or *In the folder specified below* (with a folder picker shown only for that
+  option, e.g. `Bible/`). Applies to **every** note the plugin creates — verse, chapter, book and
+  testament alike — and to all three conversion commands.
+- **Setting: split by testament.** A toggle that files created notes into `Old Testament/` and
+  `New Testament/` subfolders of the chosen location. Testament notes themselves sit at the
+  location's root.
 - **Setting: excluded folders.** A configurable list of folders the vault-wide scan should skip
   entirely (e.g. templates, archives). Applies to the vault-scope command specifically — the
   single-document and folder-scope commands are already an explicit, deliberate choice of what to
@@ -70,9 +84,12 @@ vault-wide command only — shows a confirmation prompt and progress indicator f
 
 If a task seems to require one of these, stop and flag it rather than building it.
 
-## Files being ported from the web app (Bible Journal project)
+## Files ported from the web app (Bible Journal project)
 
-These already exist and work in another project. Port the logic; don't redesign it.
+**Ported 2026-09-25.** The copies in `src/` and `spec/` are now the only source of truth — do not
+read or reference the web app repo again. Since the port, the detector also accepts `John 3.16`
+and `Romans 8 28` (dot and space in place of the colon); `spec/verse-linking.md` records the rules.
+The original porting notes follow.
 
 - `bible-books.ts` — 66-book list, chapter counts, alternate spellings. No imports.
 - `verse-rules.ts` — **the actual detector**: matching, canonical-form conversion, range
@@ -81,7 +98,8 @@ These already exist and work in another project. Port the logic; don't redesign 
   Run this immediately after porting, before writing any new plugin code, as a correctness
   checkpoint.
 - `hidden-characters.ts` — strips invisible characters from pasted text before detection. Not
-  imported by the detector itself, but run it on pasted text before detection — it fixed a real
+  imported by the detector itself, but run it on note text before detection (in this plugin:
+  inside the conversion step, since there's no paste handling) — it fixed a real
   bug (191 missed references in one journal) from invisible characters breaking recognition on
   paste.
 - `spec/verse-linking.md`, **lines 7–62 only** ("Detection" and "What else counts as a reference"
@@ -112,7 +130,8 @@ for the general idea of debounce-on-pause / cache-unchanged-paragraphs, but don'
 
 - **Bible Verse**: `{John 3:16}` is its live-render syntax. Never convert or scan text inside
   `{...}`.
-- **Bible Reference**: only triggers on its own `--John1:1` syntax — no overlap risk.
+- **Bible Reference**: only triggers on its own `--John1:1` syntax — but the detector does match
+  the `John1:1` part, so conversion skips that syntax explicitly (see the ignore list).
 - **Bible Sidecar**: passive read-only panel — no overlap risk.
 - **conVERsum / traVERture**: both do live, passive decoration of plain-text references. Manual
   (not live) conversion here avoids adding to that continuous-rescan load, and once a reference
