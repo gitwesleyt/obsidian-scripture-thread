@@ -112,3 +112,68 @@ serves:
   - Vault command: confirm, progress, Stop, excluded folder untouched
   - Created notes have the right names, folders and parent links
   - An existing `Psalms 23 1.md` is reused, not duplicated
+
+---
+
+# Feature 1 — Verse context side panel
+
+Scope and rules: see CLAUDE.md, Feature 1. Each item is tagged with the "Done when" criterion it
+serves:
+
+- `DW1` the cursor on a verse link opens/updates the panel
+- `DW2` it lists every other note referencing that verse
+- `DW3` each shows the containing paragraph's actual text
+- `SPEC` other CLAUDE.md constraints (single registration point, no live scanning, docs)
+
+API check against `obsidian.d.ts` v1.12.3: `getBacklinksForFile` isn't there, so the notes linking
+to a verse come from the documented `metadataCache.resolvedLinks` / `unresolvedLinks`. There's no
+cursor-moved workspace event; the caret is followed with a CodeMirror 6 `updateListener` through
+`registerEditorExtension`.
+
+## 0. Housekeeping
+- [x] `LICENSE`: `Copyright (C) 2026 by Wesley Tullis` `SPEC`
+- [x] CLAUDE.md Feature 1: `resolvedLinks` instead of `getBacklinksForFile`, plus the decisions
+      (verse and chapter links, caret in a paragraph, overlapping group, opens itself, caret
+      moves only) `SPEC`
+- [x] `package.json`: `@codemirror/view` pinned to `6.38.6` (the version `obsidian` depends on) as
+      a devDependency; esbuild keeps it external `SPEC`
+
+## 1. Pure logic (Vitest-tested)
+- [x] `src/context/links-at-cursor.ts`: `linksAtCursor` — the link under the caret, or every link
+      in the caret's paragraph (list items and headings stand alone) `DW1`
+- [x] `src/context/bible-link.ts`: `parseBibleLink` — a name that is wholly one verse or chapter
+      reference, with its verse keys and chapter keys `DW1 DW2`
+- [x] `src/context/paragraph.ts`: `paragraphAt` — the section holding an offset, or the innermost
+      list item for a list `DW3`
+- [x] `src/context/find-mentions.ts`: `findMentions` — exact and overlapping groups, current note
+      left out, parent links in verse notes skipped, property links, newest first `DW2 DW3`
+- [x] Tests: `links-at-cursor.test.ts`, `bible-link.test.ts`, `find-mentions.test.ts` (which also
+      covers paragraph boundaries) — 26 tests `DW1 DW2 DW3`
+
+## 2. Obsidian layer
+- [x] `src/context/cursor-tracker.ts`: caret moves only (no document change), debounced 200 ms `DW1 SPEC`
+- [x] `src/context/obsidian-mention-source.ts`: the metadata cache and vault behind `findMentions`
+- [x] `src/ui/verse-context-view.ts`: stacked sections, "This verse" and "Overlapping passages",
+      paragraphs rendered as markdown, click to open at the paragraph, refresh on `resolved` `DW2 DW3`
+- [x] `src/commands/context-actions.ts`: opens the panel only when it isn't open; the command and
+      ribbon also reveal it and fill it from the caret `DW1`
+
+## 3. Single registration point
+- [x] `src/commands/index.ts`: the view, the editor extension, the "Open verse context panel"
+      command and the ribbon icon `SPEC DW1`
+
+## 4. Docs
+- [x] README "Verse context panel" section and limits; CHANGELOG entry `SPEC`
+
+## 5. Done-when check
+- [x] Automated: `DW2`/`DW3` by `find-mentions.test.ts` over a fake vault; `DW1` by the
+      `linksAtCursor` + `parseBibleLink` tests
+- [ ] In Obsidian: the cursor on a verse link opens/updates the panel `DW1`, listing every other
+      note referencing it `DW2`, with each paragraph's actual text visible `DW3`
+
+## Verification
+- [x] `npm run check`: build, lint 0 errors (the same 10 known warnings), 160/160 tests
+- [ ] Manual, in the test vault: paragraph, list item, callout and property mentions; the
+      overlapping group; a paragraph with two verse links (stacked, and single with the caret on
+      one); the panel opens without taking focus, stays when the caret moves off, comes back after
+      closing; typing inside a link does nothing; the command and ribbon open it

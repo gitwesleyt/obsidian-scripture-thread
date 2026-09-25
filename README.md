@@ -5,8 +5,8 @@ converts plain-text Bible references into linked notes.
 
 ## What it does
 
-**See what you've already written.** *(Coming next — not built yet.)* Place your cursor on a
-Bible verse reference and a side panel shows every other note that mentions that verse —
+**See what you've already written.** Place your cursor on a Bible verse link and a side panel
+shows every other note that mentions that verse —
 including the actual surrounding text from each note, not just a list of titles. It's the
 difference between Obsidian's native graph view (which only tells you *that* two notes are
 connected) and actually seeing *what you said* the last time you wrote about that passage.
@@ -43,6 +43,28 @@ again in Settings → Community plugins.
 Requires Obsidian 1.11 or later.
 
 ## Usage
+
+### Verse context panel
+Click on a verse or chapter link — `[[Psalms 23 3|Psalm 23:3]]`, `[[John 3 16-18]]`,
+`[[Psalms 23]]`, `[[Matthew 5-7]]` — and the **Verse context** panel opens in the right sidebar.
+It lists every other note that links to that verse, newest first, with the paragraph each link
+sits in. Click a paragraph to jump to it in its note; links inside it work as usual.
+
+- **Anywhere in a paragraph works too.** With the cursor on a link, the panel shows that link.
+  With it elsewhere in a paragraph, it shows every verse link in the paragraph, one after
+  another. A list item or heading counts as its own paragraph.
+- **Overlapping passages** are listed separately: on John 3:16 you'll also see notes that link to
+  John 3:16-18. For a chapter, that means chapter ranges — Matthew 6 shows notes linking to
+  Matthew 5-7, but not every verse note in the chapter.
+- A link in a note's properties is listed as "Linked in properties".
+- Book and testament links (`[[Psalms]]`, `[[Old Testament]]`) don't open the panel, and the
+  `[[John 3]]` line inside a verse note (the parent link conversion creates) isn't listed.
+
+The panel follows your cursor, not your typing, and only reads the paragraph you're in. It
+keeps showing the last verse when you move away from a link. If you close it, it comes back the
+next time you land on a verse link; if you just switch to another sidebar tab or collapse the
+sidebar, it stays out of the way and updates in the background. You can also open it with the
+**Open verse context panel** command or the book icon in the ribbon.
 
 ### Converting references
 Three commands are available from the command palette (Cmd/Ctrl+P, then type "Convert Bible").
@@ -134,15 +156,16 @@ That makes it safe to run alongside other Bible-reference plugins that use those
 
 ## What it doesn't do (yet)
 
-- The verse context side panel described above isn't built yet.
 - Doesn't populate newly created verse notes with actual scripture text — conversion creates the
   note structure only. Adding verse text depends on wiring up a translation source, which isn't
   built yet.
 - The ignore list above is fixed; there's no setting to customize it.
 - A range across chapters isn't understood: `John 3:16-4:2` links only `John 3:16` and leaves
   `-4:2` as plain text.
-- Mobile: conversion runs entirely in-plugin (no external processes), so there's no fundamental
-  blocker, but mobile hasn't been specifically tested yet.
+- Very long ranges only count their first verse for the panel's overlap: `[[Psalms 119 1-176]]`
+  overlaps Psalm 119:1 but not 119:50.
+- Mobile: the panel and conversion run entirely in-plugin (no external processes), so there's no
+  fundamental blocker, but mobile hasn't been specifically tested yet.
 
 ## Development
 

@@ -10,11 +10,24 @@ panel listing every other note that references that same verse — and for each 
 **paragraph text** surrounding the link, not just the note title.
 
 - No block-ID system needed. Use Obsidian's metadata cache (`links[]` with position data,
-  `sections[]` for paragraph boundaries) and `getBacklinksForFile()` to locate the paragraph
-  containing a given link.
-- `getBacklinksForFile()` is undocumented but stable — before using it, check its current
-  signature against `obsidian.d.ts` in `node_modules/obsidian`. Don't assume the shape from
-  training data; the plugin API has changed before.
+  `sections[]` / `listItems[]` for paragraph boundaries) to locate the paragraph containing a
+  given link.
+- **`getBacklinksForFile()` is not in the installed `obsidian.d.ts` (checked at v1.12.3)** — use
+  the documented `metadataCache.resolvedLinks` / `unresolvedLinks` to find the notes linking to
+  a verse instead. Don't assume API shapes from training data; the plugin API has changed before.
+- **Responds to verse and chapter links** (`[[Psalms 23 3]]`, `[[John 3 16-18]]`, `[[Psalms 23]]`,
+  `[[Matthew 5-7]]`), not book or testament links. With the caret **on** such a link, the panel
+  shows that link; with it elsewhere in a paragraph, it shows every verse link in the paragraph,
+  stacked.
+- **Overlapping references are included**, in their own group: on `[[John 3 16]]`, notes linking
+  to `[[John 3 16-18]]` also appear. Overlap means sharing a detector verse key, so verse and
+  chapter links don't pull each other in.
+- **Opens itself** in the right sidebar when the caret reaches a verse link; also a command and
+  ribbon icon. It never closes itself — it keeps the last verse when the caret moves away.
+- It follows **caret moves only, never typing**, and reads only the caret's paragraph — no
+  scanning of note text.
+- Skips the current note, and the parent links inside verse notes (the `[[John 3]]` line the
+  converter writes into `John 3 16.md`).
 - Removing a linked verse from the panel is explicitly **not needed**. Don't build it.
 
 **Done when:** placing the cursor on a verse link opens/updates a panel showing every other note
