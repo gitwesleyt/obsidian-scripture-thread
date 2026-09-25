@@ -168,12 +168,12 @@ cursor-moved workspace event; the caret is followed with a CodeMirror 6 `updateL
 ## 5. Done-when check
 - [x] Automated: `DW2`/`DW3` by `find-mentions.test.ts` over a fake vault; `DW1` by the
       `linksAtCursor` + `parseBibleLink` tests
-- [ ] In Obsidian: the cursor on a verse link opens/updates the panel `DW1`, listing every other
+- [x] In Obsidian: the cursor on a verse link opens/updates the panel `DW1`, listing every other
       note referencing it `DW2`, with each paragraph's actual text visible `DW3`
 
 ## Verification
 - [x] `npm run check`: build, lint 0 errors (the same 10 known warnings), 160/160 tests
-- [ ] Manual, in the test vault: paragraph, list item, callout and property mentions; the
+- [x] Manual, in the test vault: paragraph, list item, callout and property mentions; the
       overlapping group; a paragraph with two verse links (stacked, and single with the caret on
       one); the panel opens without taking focus, stays when the caret moves off, comes back after
       closing; typing inside a link does nothing; the command and ribbon open it
