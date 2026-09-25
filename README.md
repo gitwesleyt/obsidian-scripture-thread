@@ -22,25 +22,37 @@ created when you run a conversion command.
 
 ## Installation
 
-There's no published release yet, so for now the plugin is built from source.
+Requires Obsidian 1.11 or later. Each vault has its own plugins, so install it in every vault
+you want it in — a vault synced across devices (iCloud, Obsidian Sync) brings the plugin along.
 
-1. Build it (needs [Node.js](https://nodejs.org/) 22 or later):
-   ```bash
-   git clone https://github.com/gitwesleyt/obsidian-scripture-thread.git
-   cd obsidian-scripture-thread
-   npm install
-   npm run build
-   ```
-2. Create the folder `<your-vault>/.obsidian/plugins/scripture-thread/` and copy `main.js`,
-   `manifest.json` and `styles.css` into it.
+### With BRAT (recommended — updates itself)
+[BRAT](https://github.com/TfTHacker/obsidian42-brat) installs plugins straight from their GitHub
+releases and keeps them up to date.
+
+1. Install and enable **BRAT** from Settings → Community plugins → Browse.
+2. This repository is private, so BRAT needs a GitHub token to read it. On GitHub, go to
+   Settings → Developer settings → Personal access tokens → **Fine-grained tokens** → Generate
+   new token. Under *Repository access* choose *Only select repositories* and pick
+   `obsidian-scripture-thread`; under *Permissions*, set **Contents** to *Read-only*. Copy the
+   token and paste it into BRAT's settings (the personal access token field). Tokens expire, so
+   when BRAT can no longer update, generate a new one.
+3. In BRAT's settings choose **Add beta plugin**, enter `gitwesleyt/obsidian-scripture-thread`,
+   and pick the latest version.
+4. Enable **Scripture Thread** in Settings → Community plugins.
+
+To get new versions, turn on BRAT's option to check for updates at startup, or run BRAT's
+"Check for updates" command.
+
+### By hand
+1. From the [latest release](https://github.com/gitwesleyt/obsidian-scripture-thread/releases/latest),
+   download `main.js`, `manifest.json` and `styles.css`.
+2. Put them in `<your-vault>/.obsidian/plugins/scripture-thread/` (create the folder).
 3. Restart Obsidian. It only notices a newly added plugin folder when it starts, or when you
    click the refresh button next to **Installed plugins** in Settings → Community plugins.
 4. Enable **Scripture Thread** in Settings → Community plugins.
 
-To update, rebuild and copy the three files over the old ones, then turn the plugin off and on
-again in Settings → Community plugins.
-
-Requires Obsidian 1.11 or later.
+To update, download the new release's three files over the old ones, then turn the plugin off
+and on again.
 
 ## Usage
 
@@ -180,6 +192,43 @@ workflow), so this local check is the main safety net.
 The detection rules are written up in the "Detection" sections of
 [spec/verse-linking.md](spec/verse-linking.md) (the rest of that file describes the web app it
 was ported from).
+
+### Building from source
+Needs [Node.js](https://nodejs.org/) 22 or later.
+
+```bash
+git clone https://github.com/gitwesleyt/obsidian-scripture-thread.git
+cd obsidian-scripture-thread
+npm install
+npm run build
+```
+
+That writes `main.js`; copy it with `manifest.json` and `styles.css` into a vault's
+`.obsidian/plugins/scripture-thread/` folder.
+
+### Releasing a new version
+Releases are made from your own machine with the [GitHub CLI](https://cli.github.com/) (`gh`),
+so they don't use GitHub Actions minutes.
+
+1. In `CHANGELOG.md`, move the entries under *Unreleased* into a new heading for the version.
+   Commit that on `master`.
+2. Bump the version. Use `patch` for fixes (1.0.0 → 1.0.1), `minor` for new features (1.1.0),
+   `major` for changes that break how it's used (2.0.0):
+   ```bash
+   npm version patch
+   ```
+   This updates `package.json`, `manifest.json` and `versions.json`, commits, and tags the
+   commit `1.0.1` — no `v`, which is what Obsidian and BRAT expect.
+3. Push the commit and its tag:
+   ```bash
+   git push --follow-tags
+   ```
+4. Build, check, and publish the release with the three plugin files attached:
+   ```bash
+   npm run release
+   ```
+
+BRAT picks up the new version the next time it checks for updates.
 
 ## License
 
