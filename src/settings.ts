@@ -43,6 +43,10 @@ type FolderKey = 'notesFolder' | 'conversionFolder';
 
 /** One section per command, plus the settings every command shares. */
 export class ScriptureThreadSettingTab extends PluginSettingTab {
+	/** The start field of a marker pair just added, focused once the redraw is done. */
+	private fieldToFocus: HTMLInputElement | null = null;
+	private focusMarkerIndex: number | null = null;
+
 	constructor(
 		app: App,
 		private readonly host: SettingsHost,
@@ -151,7 +155,7 @@ export class ScriptureThreadSettingTab extends PluginSettingTab {
 					'Text from a start marker to the next end marker is skipped, even across lines. Leave the end empty to skip to the end of the line.',
 				)
 				.addButton((button) => {
-					button.setButtonText('Add marker pair').onClick(() => void this.changeMarkers((markers) => markers.push({ start: '', end: '' })));
+					button.setButtonText('Add marker pair').onClick(() => void this.addMarker());
 				});
 		});
 
@@ -170,7 +174,10 @@ export class ScriptureThreadSettingTab extends PluginSettingTab {
 
 		setting
 			.setName(`Markers ${index + 1}`)
-			.addText((text) => text.setPlaceholder('Start, e.g. %%').setValue(pair.start).onChange((value) => save('start', value)))
+			.addText((text) => {
+				text.setPlaceholder('Start, e.g. %%').setValue(pair.start).onChange((value) => save('start', value));
+				if (index === this.focusMarkerIndex) this.fieldToFocus = text.inputEl;
+			})
 			.addText((text) => text.setPlaceholder('End of line').setValue(pair.end).onChange((value) => save('end', value)))
 			.addExtraButton((button) => {
 				button
@@ -178,6 +185,17 @@ export class ScriptureThreadSettingTab extends PluginSettingTab {
 					.setTooltip('Remove')
 					.onClick(() => void this.changeMarkers((markers) => markers.splice(index, 1)));
 			});
+	}
+
+	private async addMarker(): Promise<void> {
+		const { markers } = this.host.settings.ignore;
+		markers.push({ start: '', end: '' });
+		this.focusMarkerIndex = markers.length - 1;
+		await this.saveAndRedraw();
+
+		this.fieldToFocus?.focus();
+		this.fieldToFocus = null;
+		this.focusMarkerIndex = null;
 	}
 
 	private async changeMarkers(change: (markers: MarkerPair[]) => void): Promise<void> {
@@ -270,8 +288,24 @@ export class ScriptureThreadSettingTab extends PluginSettingTab {
 			});
 	}
 
+	/** Redraws for settings that show or hide others, keeping the screen where it was. */
 	private async saveAndRedraw(): Promise<void> {
 		await this.host.saveSettings();
+
+		const scroller = scrollingAncestor(this.containerEl);
+		const scrollTop = scroller?.scrollTop ?? 0;
 		this.display();
+		if (scroller) scroller.scrollTop = scrollTop;
 	}
+}
+
+/** The element that scrolls the settings, which `display()` would otherwise send back to the top. */
+function scrollingAncestor(el: HTMLElement): HTMLElement | null {
+	for (let current: HTMLElement | null = el; current; current = current.parentElement) {
+		const { overflowY } = getComputedStyle(current);
+		if ((overflowY === 'auto' || overflowY === 'scroll') && current.scrollHeight > current.clientHeight) {
+			return current;
+		}
+	}
+	return null;
 }
