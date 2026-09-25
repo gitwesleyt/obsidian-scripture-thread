@@ -1,5 +1,5 @@
 import type { App, WorkspaceLeaf } from 'obsidian';
-import { parseBibleLink } from '../context/bible-link';
+import { parseBibleLink } from '../bible-link';
 import type { VerseLinksAtCursor } from '../context/cursor-tracker';
 import { linksAtCursor } from '../context/links-at-cursor';
 import { VERSE_CONTEXT_VIEW, VerseContextView } from '../ui/verse-context-view';

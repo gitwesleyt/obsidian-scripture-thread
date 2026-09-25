@@ -100,6 +100,20 @@ text exactly as you typed it, so the colon stays visible for other plugins that 
 part before it is the note's name: the full, plural book name, with a space instead of the colon
 (file names can't contain `:`).
 
+**Standardize references.** Turn this on in Settings and the visible text is written in one
+standard form instead:
+
+| You write | Shows as |
+|---|---|
+| `Ps 23`, `Ps 23:1` | `Psalm 23`, `Psalm 23:1` |
+| `Jn 3.16`, `Romans 8 28` | `John 3:16`, `Romans 8:28` |
+| `II Cor 5:17`, `acts 3` | `2 Corinthians 5:17`, `Acts 3` |
+
+Links you've already converted are tidied the same way the next time you run a command:
+`[[John 3 16|Jn 3.16]]` becomes `[[John 3 16|John 3:16]]`, and a bare `[[Psalms 23 1]]` becomes
+`[[Psalms 23 1|Psalm 23:1]]`. Where a link points never changes, and link text that isn't a
+reference to the same passage — `[[John 3 16|this verse]]` — is left as you wrote it.
+
 ### What it recognizes
 
 | You write | It links to |
@@ -133,16 +147,21 @@ link — no scripture text.
 vault (for example, one made by an older script), the plugin links to it and never modifies it,
 so you don't end up with duplicates that split your backlinks.
 
-### What conversion never touches
+### What conversion skips
+By default, conversion leaves these alone:
 - YAML frontmatter
 - Code blocks and inline code
+- Obsidian comments (`%%like this%%`)
 - Callouts
 - Text inside `{curly braces}` (the Bible Verse plugin's syntax)
-- Existing wikilinks and embeds, so running a command twice is safe
-- Markdown links and web addresses
 - The Bible Reference plugin's `--John1:1` syntax
 
 That makes it safe to run alongside other Bible-reference plugins that use those conventions.
+Each of these has a switch under **Settings → Convert commands: Skipped Text**, and you can add
+your own start/end markers there too (see Settings below).
+
+Some things are always skipped, whatever the settings: existing wikilinks and embeds (so running
+a command twice is safe), Markdown links, and web addresses.
 
 ## Settings
 
@@ -152,8 +171,24 @@ That makes it safe to run alongside other Bible-reference plugins that use those
   `Bible`). Applies to every note the plugin creates, from all three commands.
 - **Split by testament** — files new notes into `Old Testament/` and `New Testament/` subfolders
   of that location. The two testament notes themselves sit at the location's root. On by default.
+- **Standardize references** — writes references in one standard form, including links you've
+  already converted (see Converting references). Off by default.
 
-**Convert command: Current Note** — uses only the General settings.
+**Convert commands: Skipped Text** — applies to all three commands.
+- A switch for each built-in rule: **Frontmatter**, **Code blocks**, **Inline code**,
+  **Obsidian comments** (`%%…%%`), **Callouts**, **Curly braces**, and **Double-dash
+  references** (Bible Reference's `--John1:1`). All on by default; turn one off to convert
+  inside that kind of text.
+  Careful with **Frontmatter**: a link in a property needs quotes around it, which conversion
+  doesn't add, so check your properties after converting with it off.
+- **Your own markers** — click **Add marker pair** and fill in a start and an end, like `<!--` and
+  `-->` (HTML comments). Everything from a start marker to the next end marker is skipped, even
+  across lines. Leave the end empty to skip to the end of the line — a
+  start of `Source:` skips every line that begins with it. A start marker with no end after it
+  skips the rest of the note.
+
+**Convert command: Current Note** — uses the General and Skipped Text settings; nothing of its
+own.
 
 **Convert command: References in Folder**
 - **Folder to convert** — *Same folder as current file* (the default) or *In the folder specified
@@ -171,7 +206,6 @@ That makes it safe to run alongside other Bible-reference plugins that use those
 - Doesn't populate newly created verse notes with actual scripture text — conversion creates the
   note structure only. Adding verse text depends on wiring up a translation source, which isn't
   built yet.
-- The ignore list above is fixed; there's no setting to customize it.
 - A range across chapters isn't understood: `John 3:16-4:2` links only `John 3:16` and leaves
   `-4:2` as plain text.
 - Very long ranges only count their first verse for the panel's overlap: `[[Psalms 119 1-176]]`

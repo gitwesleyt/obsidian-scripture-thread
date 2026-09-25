@@ -1,29 +1,103 @@
 /**
- * The parts of a note that conversion must never touch.
+ * The parts of a note that conversion must not touch.
  *
- * Hardcoded on purpose (CLAUDE.md: the ignore list is not user-editable). Worked
- * out from the raw text rather than from `metadataCache.sections`: sections have
- * no entry for inline code or `{...}`, and the cache lags behind unsaved text in
- * the editor.
+ * Worked out from the raw text rather than from `metadataCache.sections`:
+ * sections have no entry for inline code or `{...}`, and the cache lags behind
+ * unsaved text in the editor.
  */
 
 export type Range = { from: number; to: number };
 
+/** Text from `start` to the next `end` is skipped; an empty `end` means the end of the line. */
+export type MarkerPair = { start: string; end: string };
+
+/** The user's choices of what to skip. Links are not among them: those are always skipped. */
+export type IgnoreRules = {
+	frontmatter: boolean;
+	codeBlocks: boolean;
+	inlineCode: boolean;
+	comments: boolean;
+	callouts: boolean;
+	curlyBraces: boolean;
+	bibleReferenceSyntax: boolean;
+	markers: MarkerPair[];
+};
+
+export const DEFAULT_IGNORE_RULES: IgnoreRules = {
+	frontmatter: true,
+	codeBlocks: true,
+	inlineCode: true,
+	comments: true,
+	callouts: true,
+	curlyBraces: true,
+	bibleReferenceSyntax: true,
+	markers: [],
+};
+
 type Line = { start: number; end: number; text: string };
 
-export function findProtectedRanges(text: string): Range[] {
+/** Everything conversion leaves alone: the chosen regions, plus every existing link. */
+export function findProtectedRanges(text: string, rules: IgnoreRules = DEFAULT_IGNORE_RULES): Range[] {
+	return [...skippedRegions(text, rules), ...linkRanges(text)];
+}
+
+/**
+ * Only what the rules choose. Existing links are left out, since converting
+ * inside one would nest links and make a second run unsafe -- that is why they
+ * can't be switched off, and why standardizing, which edits links, starts here.
+ */
+export function skippedRegions(text: string, rules: IgnoreRules): Range[] {
 	const lines = splitLines(text);
+	const fences = fencedCodeBlocks(lines, text.length);
 
 	return [
-		...frontmatter(text),
-		...fencedCodeBlocks(lines, text.length),
-		...calloutBlocks(lines),
-		...curlyBraceBlocks(text),
-		...matchesOf(INLINE_CODE, text),
-		...matchesOf(WIKILINK, text),
-		...matchesOf(MARKDOWN_LINK, text),
-		...matchesOf(BIBLE_REFERENCE_SYNTAX, text),
+		...(rules.frontmatter ? frontmatter(text) : []),
+		...(rules.codeBlocks ? fences : []),
+		...(rules.callouts ? calloutBlocks(lines) : []),
+		...(rules.curlyBraces ? curlyBraceBlocks(text) : []),
+		...(rules.inlineCode ? inlineCode(text, fences) : []),
+		...(rules.comments ? markerRanges(text, OBSIDIAN_COMMENT) : []),
+		...(rules.bibleReferenceSyntax ? matchesOf(BIBLE_REFERENCE_SYNTAX, text) : []),
+		...rules.markers.flatMap((pair) => markerRanges(text, pair)),
 	];
+}
+
+// A fence's backticks also look like inline code; they belong to the code-block switch.
+function inlineCode(text: string, fences: readonly Range[]): Range[] {
+	return matchesOf(INLINE_CODE, text).filter((range) => !overlapsAny(fences, range.from, range.to));
+}
+
+function linkRanges(text: string): Range[] {
+	return [...matchesOf(WIKILINK, text), ...matchesOf(MARKDOWN_LINK, text)];
+}
+
+// Obsidian hides `%%...%%`, and an unclosed `%%` hides the rest of the note, as markers do.
+const OBSIDIAN_COMMENT: MarkerPair = { start: '%%', end: '%%' };
+
+/** An unclosed start runs to the end of the note, like an unclosed code fence. */
+export function markerRanges(text: string, { start, end }: MarkerPair): Range[] {
+	if (start === '') return [];
+
+	const ranges: Range[] = [];
+	let from = text.indexOf(start);
+
+	while (from !== -1) {
+		const to = markerEnd(text, from + start.length, end);
+		ranges.push({ from, to });
+		from = text.indexOf(start, to);
+	}
+
+	return ranges;
+}
+
+function markerEnd(text: string, searchFrom: number, end: string): number {
+	if (end === '') {
+		const lineEnd = text.indexOf('\n', searchFrom);
+		return lineEnd === -1 ? text.length : lineEnd;
+	}
+
+	const endAt = text.indexOf(end, searchFrom);
+	return endAt === -1 ? text.length : endAt + end.length;
 }
 
 export function overlapsAny(ranges: readonly Range[], from: number, to: number): boolean {

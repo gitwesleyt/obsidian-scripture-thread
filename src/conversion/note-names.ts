@@ -19,6 +19,8 @@ export type LinkTarget = {
 	to: number;
 	/** The text exactly as typed, which becomes the link's alias. */
 	alias: string;
+	/** The same reference in standard form: "Psalm 23:1", or "30:22" after a semicolon. */
+	standard: string;
 	/** The linked note first, then each parent up to and including the testament. */
 	chain: string[];
 };
@@ -61,7 +63,8 @@ export function targetsFor(match: VerseMatch): LinkTarget[] {
 
 	return parts.map((part, index) => {
 		const piece = pieces[index] as Piece;
-		return { ...piece, chain: chainFor(book, part) };
+		const standard = index === 0 ? `${displayName} ${part}` : part;
+		return { ...piece, standard, chain: chainFor(book, part) };
 	});
 }
 

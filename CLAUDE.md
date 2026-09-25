@@ -40,6 +40,12 @@ Detect plain-text Bible references (e.g. `Psalm 23:3`) and convert them to wikil
 - `Psalm 23:3` → `[[Psalms 23 3|Psalm 23:3]]` — **use the alias form**, not a bare `[[Psalms 23 3]]`.
   The alias is the text **exactly as typed**, so the colon stays visible in rendered text for
   compatibility with other reference-detection plugins (conVERsum) that may rely on it.
+- **Setting: standardize references** (off by default). When on, the alias is the standard form
+  instead — `Ps 23:1` → `Psalm 23:1`, `Jn 3.16` → `John 3:16`, `II Cor 5:17` →
+  `2 Corinthians 5:17` (singular for one psalm; the colon always stays) — and existing verse and
+  chapter links get their visible text rewritten on the next run. Only text that is itself a
+  reference to the same passage is rewritten (`[[John 3 16|this verse]]` is kept); a bare link
+  gains standard text; a semicolon continuation stays short (`30:22`); targets never change.
 - **Note file names match the user's existing vaults** (created by their old script): plural
   canonical book name, with a space between chapter and verse because file names can't contain
   `:`. Examples: `Psalms 23 3`, `Psalms 23`, `Psalms`, `John 3 16-18`, `Matthew 6 1-3,7`,
@@ -59,11 +65,15 @@ Detect plain-text Bible references (e.g. `Psalm 23:3`) and convert them to wikil
      run without the confirmation. Also a right-click item on any folder in the file explorer.
   3. Convert references in **the entire vault** — requires a confirmation step and a progress
      indicator before running; this is a one-way, potentially large operation.
-- **Do not touch text inside `{...}`** — that's another installed plugin's (Bible Verse) live
-  rendering syntax, not something to convert.
-- Default ignore list for the conversion scan: `{...}` curly-brace blocks, callout blocks, code
-  blocks/inline code, YAML frontmatter — plus existing wikilinks/embeds (so re-running is safe),
-  markdown links, and Bible Reference's `--John1:1` syntax.
+- **Text inside `{...}` is skipped by default** — that's another installed plugin's (Bible Verse)
+  live rendering syntax, not something to convert. The user can switch that off (below).
+- **Skipped text, a setting.** Each built-in rule has an on/off switch, all on by default:
+  `{...}` curly-brace blocks, callout blocks, code blocks, inline code, Obsidian `%%comments%%`,
+  YAML frontmatter, and Bible Reference's `--John1:1` syntax. Users can add their own
+  **start/end marker pairs** (plain text, not regex; an empty end means end of line; an unclosed
+  start runs to the end of the note).
+  **Existing wikilinks/embeds and markdown links are always skipped** — not switchable — so
+  re-running is safe. Applies to all three commands.
 - Conversion produces the linked note **structure only** — do not populate new verse notes with
   actual scripture text. That's out of scope (see below).
 - **Setting: location for new notes.** Mirrors Obsidian's own "Default location for new notes":
@@ -85,9 +95,7 @@ vault-wide command only — shows a confirmation prompt and progress indicator f
 
 ## Explicitly out of scope — do not build these
 
-- Ignore-pattern configuration UI (the default ignore list above is hardcoded, not user-editable)
 - Populating verse notes with real scripture text (depends on a translation source, not decided)
-- Reformat-references / citation-style feature
 - Any traVERture/conVERsum forking or merging
 - Removing a verse from the side panel
 - Grey border around a "verse block," double-enter to expand/close a block (both explicitly
@@ -141,10 +149,10 @@ for the general idea of debounce-on-pause / cache-unchanged-paragraphs, but don'
 
 ## Coexistence constraints (other installed plugins)
 
-- **Bible Verse**: `{John 3:16}` is its live-render syntax. Never convert or scan text inside
-  `{...}`.
+- **Bible Verse**: `{John 3:16}` is its live-render syntax. Conversion skips text inside
+  `{...}` by default (a switch in Skipped text).
 - **Bible Reference**: only triggers on its own `--John1:1` syntax — but the detector does match
-  the `John1:1` part, so conversion skips that syntax explicitly (see the ignore list).
+  the `John1:1` part, so conversion skips that syntax by default (a switch in Skipped text).
 - **Bible Sidecar**: passive read-only panel — no overlap risk.
 - **conVERsum / traVERture**: both do live, passive decoration of plain-text references. Manual
   (not live) conversion here avoids adding to that continuous-rescan load, and once a reference

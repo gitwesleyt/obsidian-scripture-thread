@@ -1,37 +1,34 @@
 import { App, Plugin, PluginSettingTab, Setting, SettingGroup } from 'obsidian';
 import type { NotesLocation } from './conversion/note-names';
+import type { IgnoreRules, MarkerPair } from './conversion/protected-ranges';
+import type { ConversionFolderLocation, ScriptureThreadSettings } from './settings-data';
 import { FolderSuggest } from './ui/folder-suggest';
-
-export interface ScriptureThreadSettings {
-	/** Where every note the plugin creates goes. */
-	notesLocation: NotesLocation;
-	/** Used only when `notesLocation` is 'folder'. */
-	notesFolder: string;
-	splitByTestament: boolean;
-	/** Which folder the "convert in folder" command scans. */
-	conversionFolderLocation: ConversionFolderLocation;
-	/** Used only when `conversionFolderLocation` is 'folder'. */
-	conversionFolder: string;
-	/** Skipped by the whole-vault command only. */
-	excludedFolders: string[];
-}
-
-export type ConversionFolderLocation = 'current' | 'folder';
-
-export const DEFAULT_SETTINGS: ScriptureThreadSettings = {
-	notesLocation: 'folder',
-	notesFolder: 'Bible',
-	splitByTestament: true,
-	conversionFolderLocation: 'current',
-	conversionFolder: '',
-	excludedFolders: [],
-};
 
 const NOTES_LOCATION_LABELS: Record<NotesLocation, string> = {
 	root: 'Vault folder',
 	current: 'Same folder as current file',
 	folder: 'In the folder specified below',
 };
+
+type IgnoreSwitch = Exclude<keyof IgnoreRules, 'markers'>;
+
+const IGNORE_SWITCHES: { key: IgnoreSwitch; name: string; description: string }[] = [
+	{ key: 'frontmatter', name: 'Frontmatter', description: 'The properties at the top of a note. If you turn this off, check them afterwards: a link in a property needs quotes around it.' },
+	{ key: 'codeBlocks', name: 'Code blocks', description: 'Blocks fenced by ``` or ~~~ lines.' },
+	{ key: 'inlineCode', name: 'Inline code', description: 'Text between backticks.' },
+	{ key: 'comments', name: 'Obsidian comments', description: 'Text between %% marks, which Obsidian hides when reading.' },
+	{ key: 'callouts', name: 'Callouts', description: 'A > [!type] line and the > lines under it.' },
+	{
+		key: 'curlyBraces',
+		name: 'Curly braces',
+		description: 'Text inside {braces}, the Bible Verse plugin\'s syntax.',
+	},
+	{
+		key: 'bibleReferenceSyntax',
+		name: 'Double-dash references',
+		description: 'The Bible Reference plugin\'s --John1:1 syntax.',
+	},
+];
 
 const CONVERSION_FOLDER_LABELS: Record<ConversionFolderLocation, string> = {
 	current: 'Same folder as current file',
@@ -47,6 +44,10 @@ type FolderKey = 'notesFolder' | 'conversionFolder';
 
 /** One section per command, plus the settings every command shares. */
 export class ScriptureThreadSettingTab extends PluginSettingTab {
+	/** The start field of a marker pair just added, focused once the redraw is done. */
+	private fieldToFocus: HTMLInputElement | null = null;
+	private focusMarkerIndex: number | null = null;
+
 	constructor(
 		app: App,
 		private readonly host: SettingsHost,
@@ -58,6 +59,7 @@ export class ScriptureThreadSettingTab extends PluginSettingTab {
 		this.containerEl.empty();
 
 		this.addGeneralSection();
+		this.addSkippedTextSection();
 		this.addCurrentNoteSection();
 		this.addFolderSection();
 		this.addWholeVaultSection();
@@ -106,12 +108,106 @@ export class ScriptureThreadSettingTab extends PluginSettingTab {
 					}),
 				);
 		});
+
+		group.addSetting((setting) => {
+			setting
+				.setName('Standardize references')
+				.setDesc(
+					'Show every reference in one standard form: Ps 23:1 becomes Psalm 23:1, and Jn 3.16 becomes John 3:16. Also updates links you have already converted. Where a link points never changes.',
+				)
+				.addToggle((toggle) =>
+					toggle.setValue(settings.standardizeReferences).onChange(async (value) => {
+						settings.standardizeReferences = value;
+						await this.host.saveSettings();
+					}),
+				);
+		});
+
+	}
+
+	private addSkippedTextSection(): void {
+		const group = new SettingGroup(this.containerEl).setHeading('Convert commands: Skipped Text');
+		const { ignore } = this.host.settings;
+
+		group.addSetting((setting) => {
+			setting.setDesc(
+				'All three convert commands leave these parts of a note alone. Existing links and Markdown links are always skipped, so converting twice is safe.',
+			);
+		});
+
+		for (const rule of IGNORE_SWITCHES) {
+			group.addSetting((setting) => {
+				setting
+					.setName(rule.name)
+					.setDesc(rule.description)
+					.addToggle((toggle) =>
+						toggle.setValue(ignore[rule.key]).onChange(async (value) => {
+							ignore[rule.key] = value;
+							await this.host.saveSettings();
+						}),
+					);
+			});
+		}
+
+		group.addSetting((setting) => {
+			setting
+				.setName('Your own markers')
+				.setDesc(
+					'Text from a start marker to the next end marker is skipped, even across lines. Leave the end empty to skip to the end of the line.',
+				)
+				.addButton((button) => {
+					button.setButtonText('Add marker pair').onClick(() => void this.addMarker());
+				});
+		});
+
+		ignore.markers.forEach((pair, index) => {
+			group.addSetting((setting) => {
+				this.markerRow(setting, pair, index);
+			});
+		});
+	}
+
+	private markerRow(setting: Setting, pair: MarkerPair, index: number): void {
+		const save = async (key: keyof MarkerPair, value: string) => {
+			pair[key] = value;
+			await this.host.saveSettings();
+		};
+
+		setting
+			.setName(`Markers ${index + 1}`)
+			.addText((text) => {
+				text.setPlaceholder('Start, e.g. %%').setValue(pair.start).onChange((value) => save('start', value));
+				if (index === this.focusMarkerIndex) this.fieldToFocus = text.inputEl;
+			})
+			.addText((text) => text.setPlaceholder('End of line').setValue(pair.end).onChange((value) => save('end', value)))
+			.addExtraButton((button) => {
+				button
+					.setIcon('trash')
+					.setTooltip('Remove')
+					.onClick(() => void this.changeMarkers((markers) => markers.splice(index, 1)));
+			});
+	}
+
+	private async addMarker(): Promise<void> {
+		const { markers } = this.host.settings.ignore;
+		markers.push({ start: '', end: '' });
+		this.focusMarkerIndex = markers.length - 1;
+		await this.saveAndRedraw();
+
+		this.fieldToFocus?.focus();
+		this.fieldToFocus = null;
+		this.focusMarkerIndex = null;
+	}
+
+	private async changeMarkers(change: (markers: MarkerPair[]) => void): Promise<void> {
+		change(this.host.settings.ignore.markers);
+		await this.saveAndRedraw();
 	}
 
 	private addCurrentNoteSection(): void {
 		new SettingGroup(this.containerEl).setHeading('Convert command: Current Note').addSetting((setting) => {
 			setting.setDesc(
-				'The "convert references in current note" command converts the note open in the editor. It uses only the general settings above, and one undo reverses it.',
+				'The "convert references in current note" command converts the note open in the editor. It uses the general and skipped-text settings above, and one undo reverses it.',
 			);
 		});
 	}
@@ -193,8 +289,24 @@ export class ScriptureThreadSettingTab extends PluginSettingTab {
 			});
 	}
 
+	/** Redraws for settings that show or hide others, keeping the screen where it was. */
 	private async saveAndRedraw(): Promise<void> {
 		await this.host.saveSettings();
+
+		const scroller = scrollingAncestor(this.containerEl);
+		const scrollTop = scroller?.scrollTop ?? 0;
 		this.display();
+		if (scroller) scroller.scrollTop = scrollTop;
 	}
+}
+
+/** The element that scrolls the settings, which `display()` would otherwise send back to the top. */
+function scrollingAncestor(el: HTMLElement): HTMLElement | null {
+	for (let current: HTMLElement | null = el; current; current = current.parentElement) {
+		const { overflowY } = getComputedStyle(current);
+		if ((overflowY === 'auto' || overflowY === 'scroll') && current.scrollHeight > current.clientHeight) {
+			return current;
+		}
+	}
+	return null;
 }

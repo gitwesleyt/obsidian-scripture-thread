@@ -1,6 +1,7 @@
 import type { App, Editor, EditorPosition, TFile } from 'obsidian';
 import { describe, expect, it } from 'vitest';
 
+import { DEFAULT_CONVERSION_OPTIONS } from './convert-text';
 import {
 	convertEditor,
 	convertFiles,
@@ -75,7 +76,12 @@ function fakeEditor(initial: string) {
 	return { editor, text: () => text };
 }
 
-const split = { notesLocation: 'folder', notesFolder: 'Bible', splitByTestament: true } as const;
+const split = {
+	...DEFAULT_CONVERSION_OPTIONS,
+	notesLocation: 'folder',
+	notesFolder: 'Bible',
+	splitByTestament: true,
+} as const;
 
 describe('converting files on disk', () => {
 	it('rewrites references and creates the whole parent chain', async () => {
@@ -184,16 +190,40 @@ describe('converting the open note', () => {
 const nothingDone: ConversionSummary = {
 	filesChanged: 0,
 	linksCreated: 0,
+	linksStandardized: 0,
 	notesCreated: 0,
 	failedPaths: [],
 	stoppedEarly: false,
 };
+
+describe('standardizing references', () => {
+	it('writes standard text for new links and tidies existing ones, counting each', async () => {
+		const { app, files, fileFor } = fakeVault({
+			'Journal/Sept.md': 'Read Ps 23:1 and [[John 3 16|Jn 3.16]].',
+		});
+		const settings = { ...split, standardizeReferences: true };
+
+		const summary = await convertFiles(app, settings, [fileFor('Journal/Sept.md')]);
+
+		expect(files.get('Journal/Sept.md')).toBe('Read [[Psalms 23 1|Psalm 23:1]] and [[John 3 16|John 3:16]].');
+		expect(summary).toMatchObject({ filesChanged: 1, linksCreated: 1, linksStandardized: 1 });
+
+		const again = await convertFiles(app, settings, [fileFor('Journal/Sept.md')]);
+		expect(again).toMatchObject({ filesChanged: 0, linksCreated: 0, linksStandardized: 0 });
+	});
+});
 
 describe('the summary a run ends with', () => {
 	it('counts what was converted and created', () => {
 		expect(
 			describeSummary({ ...nothingDone, filesChanged: 2, linksCreated: 5, notesCreated: 1 }),
 		).toBe('Converted 5 references in 2 notes and created 1 new note.');
+	});
+
+	it('mentions standardized links only when there were some', () => {
+		expect(
+			describeSummary({ ...nothingDone, filesChanged: 2, linksCreated: 3, linksStandardized: 5, notesCreated: 4 }),
+		).toBe('Converted 3 references and standardized 5 links in 2 notes and created 4 new notes.');
 	});
 
 	it('says when a run was stopped', () => {

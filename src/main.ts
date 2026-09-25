@@ -1,9 +1,9 @@
 import { Plugin } from 'obsidian';
 import { registerAll } from './commands';
-import { DEFAULT_SETTINGS, type ScriptureThreadSettings } from './settings';
+import { withDefaults, type ScriptureThreadSettings } from './settings-data';
 
 export default class ScriptureThreadPlugin extends Plugin {
-	settings: ScriptureThreadSettings = { ...DEFAULT_SETTINGS };
+	settings: ScriptureThreadSettings = withDefaults(null);
 
 	async onload() {
 		await this.loadSettings();
@@ -11,11 +11,7 @@ export default class ScriptureThreadPlugin extends Plugin {
 	}
 
 	async loadSettings() {
-		this.settings = Object.assign(
-			{},
-			DEFAULT_SETTINGS,
-			(await this.loadData()) as Partial<ScriptureThreadSettings>,
-		);
+		this.settings = withDefaults((await this.loadData()) as Partial<ScriptureThreadSettings> | null);
 	}
 
 	async saveSettings() {

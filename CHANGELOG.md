@@ -7,6 +7,16 @@ follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-09-26
+
+### Added
+- **Standardize references** setting: converted references show in one standard form (`Ps 23:1`
+  → `Psalm 23:1`, `Jn 3.16` → `John 3:16`), and existing verse and chapter links are tidied the
+  same way. Link targets never change, and link text that isn't a reference is kept.
+- **Skipped text** settings: a switch for each built-in rule (frontmatter, code blocks, inline
+  code, Obsidian `%%comments%%`, callouts, curly braces, `--John1:1`), plus your own start/end
+  marker pairs. Existing links and Markdown links are always skipped.
+
 ## [1.0.0] - 2026-09-25
 
 ### Added

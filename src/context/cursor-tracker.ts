@@ -1,6 +1,6 @@
 import { EditorView, type ViewUpdate } from '@codemirror/view';
 import { debounce, editorInfoField } from 'obsidian';
-import { parseBibleLink } from './bible-link';
+import { parseBibleLink } from '../bible-link';
 import { linksAtCursor } from './links-at-cursor';
 
 export type VerseLinksAtCursor = { linkpaths: string[]; sourcePath: string };

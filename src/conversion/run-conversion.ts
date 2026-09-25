@@ -1,15 +1,19 @@
 import type { App, Editor, TFile } from 'obsidian';
-import { applyEdits, convertText, type Conversion } from './convert-text';
+import { applyEdits, convertText, type Conversion, type ConversionOptions } from './convert-text';
 import { NoteCreator } from './note-creator';
 import type { NoteLocation } from './note-names';
 
 export type ConversionSummary = {
 	filesChanged: number;
 	linksCreated: number;
+	linksStandardized: number;
 	notesCreated: number;
 	failedPaths: string[];
 	stoppedEarly: boolean;
 };
+
+/** What a conversion run needs from the plugin settings. */
+export type ConversionSettings = NoteLocation & ConversionOptions;
 
 export type BatchOptions = {
 	onProgress?: (done: number, total: number, file: TFile) => void;
@@ -22,11 +26,11 @@ export type BatchOptions = {
  */
 export async function convertEditor(
 	app: App,
-	location: NoteLocation,
+	settings: ConversionSettings,
 	editor: Editor,
 	file: TFile,
 ): Promise<ConversionSummary> {
-	const conversion = convertText(editor.getValue());
+	const conversion = convertText(editor.getValue(), settings);
 
 	if (conversion.edits.length > 0) {
 		// Last edit first, so each position is still right whichever way the changes are applied.
@@ -38,12 +42,13 @@ export async function convertEditor(
 		editor.transaction({ changes });
 	}
 
-	const creator = new NoteCreator(app, location);
+	const creator = new NoteCreator(app, settings);
 	await ensureChains(creator, conversion, file.path);
 
 	return {
 		filesChanged: conversion.edits.length > 0 ? 1 : 0,
-		linksCreated: conversion.edits.length,
+		linksCreated: conversion.chains.length,
+		linksStandardized: conversion.standardized,
 		notesCreated: creator.createdCount,
 		failedPaths: [],
 		stoppedEarly: false,
@@ -53,14 +58,15 @@ export async function convertEditor(
 /** Files on disk, one at a time. A failure in one file is recorded and the run goes on. */
 export async function convertFiles(
 	app: App,
-	location: NoteLocation,
+	settings: ConversionSettings,
 	files: readonly TFile[],
 	options: BatchOptions = {},
 ): Promise<ConversionSummary> {
-	const creator = new NoteCreator(app, location);
+	const creator = new NoteCreator(app, settings);
 	const summary: ConversionSummary = {
 		filesChanged: 0,
 		linksCreated: 0,
+		linksStandardized: 0,
 		notesCreated: 0,
 		failedPaths: [],
 		stoppedEarly: false,
@@ -73,11 +79,12 @@ export async function convertFiles(
 		}
 
 		try {
-			const conversion = await convertFile(app, file);
+			const conversion = await convertFile(app, file, settings);
 			await ensureChains(creator, conversion, file.path);
 
 			if (conversion.edits.length > 0) summary.filesChanged += 1;
-			summary.linksCreated += conversion.edits.length;
+			summary.linksCreated += conversion.chains.length;
+			summary.linksStandardized += conversion.standardized;
 		} catch {
 			summary.failedPaths.push(file.path);
 		}
@@ -90,8 +97,13 @@ export async function convertFiles(
 }
 
 export function describeSummary(summary: ConversionSummary): string {
+	const standardized =
+		summary.linksStandardized > 0
+			? ` and standardized ${count(summary.linksStandardized, 'link')}`
+			: '';
 	const sentences = [
-		`Converted ${count(summary.linksCreated, 'reference')} in ${count(summary.filesChanged, 'note')}` +
+		`Converted ${count(summary.linksCreated, 'reference')}${standardized}` +
+			` in ${count(summary.filesChanged, 'note')}` +
 			` and created ${count(summary.notesCreated, 'new note')}.`,
 	];
 
@@ -113,13 +125,13 @@ function describeFailures(paths: readonly string[]): string {
  * Read first and write only when something changes, so a vault-wide run does not
  * touch the modified time of every note that had nothing to convert.
  */
-async function convertFile(app: App, file: TFile): Promise<Conversion> {
-	const unchanged: Conversion = { edits: [], chains: [] };
-	if (convertText(await app.vault.cachedRead(file)).edits.length === 0) return unchanged;
+async function convertFile(app: App, file: TFile, options: ConversionOptions): Promise<Conversion> {
+	const unchanged: Conversion = { edits: [], chains: [], standardized: 0 };
+	if (convertText(await app.vault.cachedRead(file), options).edits.length === 0) return unchanged;
 
 	let conversion = unchanged;
 	await app.vault.process(file, (data) => {
-		conversion = convertText(data);
+		conversion = convertText(data, options);
 		return applyEdits(data, conversion.edits);
 	});
 
