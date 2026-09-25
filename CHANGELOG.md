@@ -7,6 +7,8 @@ follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-09-25
+
 ### Added
 - A verse context side panel: with the cursor on (or in a paragraph with) a verse or chapter
   link, it lists every other note linking to that verse, with the paragraph around each link,
