@@ -177,6 +177,8 @@ a command twice is safe), Markdown links, and web addresses.
 - A switch for each built-in rule: **Frontmatter**, **Code blocks**, **Inline code**,
   **Callouts**, **Curly braces**, and **Double-dash references** (Bible Reference's
   `--John1:1`). All on by default; turn one off to convert inside that kind of text.
+  Careful with **Frontmatter**: a link in a property needs quotes around it, which conversion
+  doesn't add, so check your properties after converting with it off.
 - **Your own markers** — click **Add marker pair** and fill in a start and an end, like `%%` and
   `%%` (Obsidian comments) or `<!--` and `-->`. Everything from a start marker to the next end
   marker is skipped, even across lines. Leave the end empty to skip to the end of the line — a

@@ -13,7 +13,7 @@ const NOTES_LOCATION_LABELS: Record<NotesLocation, string> = {
 type IgnoreSwitch = Exclude<keyof IgnoreRules, 'markers'>;
 
 const IGNORE_SWITCHES: { key: IgnoreSwitch; name: string; description: string }[] = [
-	{ key: 'frontmatter', name: 'Frontmatter', description: 'The properties block at the top of a note.' },
+	{ key: 'frontmatter', name: 'Frontmatter', description: 'The properties at the top of a note. If you turn this off, check them afterwards: a link in a property needs quotes around it.' },
 	{ key: 'codeBlocks', name: 'Code blocks', description: 'Blocks fenced by ``` or ~~~ lines.' },
 	{ key: 'inlineCode', name: 'Inline code', description: 'Text between backticks.' },
 	{ key: 'callouts', name: 'Callouts', description: 'A > [!type] line and the > lines under it.' },
