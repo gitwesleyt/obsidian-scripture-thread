@@ -84,22 +84,21 @@ export class VerseContextView extends ItemView {
 
 	private renderVerse(verse: VerseMentions): void {
 		const section = this.contentEl.createDiv({ cls: 'scripture-thread-verse' });
-		section.createEl('h3', { text: verse.reference, cls: 'scripture-thread-verse-title' });
 
-		const exact = this.renderGroup(section, 'This verse', verse.exact.length);
+		const exact = this.renderGroup(section, 'h3', verse.reference, verse.exact.length);
 		if (verse.exact.length === 0) {
 			exact.createEl('p', { text: 'No other notes link here yet.', cls: 'scripture-thread-muted' });
 		}
 		for (const note of verse.exact) this.renderNote(exact, note, false);
 
 		if (verse.overlapping.length === 0) return;
-		const overlapping = this.renderGroup(section, 'Overlapping passages', verse.overlapping.length);
+		const overlapping = this.renderGroup(section, 'h4', 'Overlapping passages', verse.overlapping.length);
 		for (const note of verse.overlapping) this.renderNote(overlapping, note, true);
 	}
 
-	/** A group heading with its note count, and the indented container its notes go in. */
-	private renderGroup(parent: HTMLElement, title: string, noteCount: number): HTMLElement {
-		const heading = parent.createEl('h4', { cls: 'scripture-thread-group-title' });
+	/** A heading with its note count, and the indented container its notes go in. */
+	private renderGroup(parent: HTMLElement, level: 'h3' | 'h4', title: string, noteCount: number): HTMLElement {
+		const heading = parent.createEl(level, { cls: 'scripture-thread-heading' });
 		heading.createSpan({ text: title });
 		heading.createSpan({ text: String(noteCount), cls: 'scripture-thread-count' });
 		return parent.createDiv({ cls: 'scripture-thread-group' });

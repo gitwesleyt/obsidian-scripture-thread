@@ -153,7 +153,7 @@ cursor-moved workspace event; the caret is followed with a CodeMirror 6 `updateL
 ## 2. Obsidian layer
 - [x] `src/context/cursor-tracker.ts`: caret moves only (no document change), debounced 200 ms `DW1 SPEC`
 - [x] `src/context/obsidian-mention-source.ts`: the metadata cache and vault behind `findMentions`
-- [x] `src/ui/verse-context-view.ts`: stacked sections, "This verse" and "Overlapping passages",
+- [x] `src/ui/verse-context-view.ts`: stacked sections, each a verse heading with its note count and an "Overlapping passages" group,
       paragraphs rendered as markdown, click to open at the paragraph, refresh on `resolved` `DW2 DW3`
 - [x] `src/commands/context-actions.ts`: opens the panel only when it isn't open; the command and
       ribbon also reveal it and fill it from the caret `DW1`
