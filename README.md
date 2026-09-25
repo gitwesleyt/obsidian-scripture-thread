@@ -160,4 +160,4 @@ was ported from).
 
 ## License
 
-MIT
+[0BSD](LICENSE)
