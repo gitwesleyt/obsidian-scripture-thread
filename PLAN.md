@@ -216,5 +216,5 @@ the "Reformat-references / citation-style feature" and the "Ignore-pattern confi
 ## Docs, testing and release
 - [x] README (Standardize references, What conversion skips, Settings), CHANGELOG
 - [x] `npm run check`: build, lint 0 errors (the 10 known warnings), 203/203 tests
-- [ ] Manual, in the test vault: `Standardize.md` and `Skipped text.md` in the UAT kit
-- [ ] Release 1.1.0: `npm version minor`, `git push --follow-tags`, `npm run release`
+- [x] Manual, in the test vault: `Standardize.md` and `Skipped text.md` in the UAT kit
+- [x] Release 1.1.0: `npm version minor`, `git push --follow-tags`, `npm run release`
