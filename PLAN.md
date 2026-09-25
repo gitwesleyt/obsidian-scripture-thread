@@ -78,7 +78,7 @@ serves:
       (folder to convert — same folder as current file / specified folder), **Convert command:
       Whole Vault** (excluded folders, full-width text box). Each folder picker appears only
       when "In the folder specified below" is chosen `SPEC`
-- [ ] `README.md`: replace the template README with install steps (including that Obsidian only
+- [x] `README.md`: replace the template README with install steps (including that Obsidian only
       picks up a manually added plugin on restart or refresh), the three commands and hotkeys,
       settings, note naming and layout, and what conversion never touches `SPEC`
 - [x] `src/ui/folder-suggest.ts`: `AbstractInputSuggest<TFolder>` over
@@ -97,15 +97,15 @@ serves:
 ## 5. Done-when check
 - [x] Automated: `DW1`–`DW3` covered by in-memory runs of `convertFiles` and `convertEditor`
       (`src/conversion/run-conversion.test.ts`)
-- [ ] In Obsidian: each of the three commands finds references in its scope `DW1`, rewrites
+- [x] In Obsidian: each of the three commands finds references in its scope `DW1`, rewrites
       them to alias form `DW2`, and creates the missing chain `DW3`; only the vault command
       confirms first and shows progress `DW4`
 
 ## Verification
-- [x] `npm test` 131/131, `npm run build` 0 type errors, `npm run lint` 0 errors. The 10
+- [x] `npm test` 134/134, `npm run build` 0 type errors, `npm run lint` 0 errors. The 10
       warnings are: sentence-case on proper nouns (Bible, Old Testament, Scripture Thread), the
       Obsidian 1.13 `getSettingDefinitions()` suggestion, and one `TFile` cast in a test fake
-- [ ] Manual, in a scratch vault, with a fixture note covering every format and every ignored region:
+- [x] Manual, in a scratch vault, with a fixture note covering every format and every ignored region:
   - Current-note command, then Ctrl+Z restores the note
   - A second run changes nothing
   - Folder command, via settings and via right-click
