@@ -1,5 +1,8 @@
 import { TFolder } from 'obsidian';
+import { cursorTracker } from '../context/cursor-tracker';
 import { ScriptureThreadSettingTab, type SettingsHost } from '../settings';
+import { VERSE_CONTEXT_VIEW, VerseContextView } from '../ui/verse-context-view';
+import { openVerseContext, showVerseContext } from './context-actions';
 import {
 	convertCurrentNote,
 	convertFolder,
@@ -10,7 +13,28 @@ import {
 /** Everything the plugin wires into Obsidian, in one place. */
 export function registerAll(plugin: SettingsHost): void {
 	plugin.addSettingTab(new ScriptureThreadSettingTab(plugin.app, plugin));
+	registerVerseContext(plugin);
+	registerConversion(plugin);
+}
 
+function registerVerseContext(plugin: SettingsHost): void {
+	plugin.registerView(VERSE_CONTEXT_VIEW, (leaf) => new VerseContextView(leaf));
+	plugin.registerEditorExtension(
+		cursorTracker((found) => void showVerseContext(plugin.app, found)),
+	);
+
+	plugin.addCommand({
+		id: 'open-verse-context-panel',
+		name: 'Open verse context panel',
+		callback: () => void openVerseContext(plugin.app),
+	});
+
+	plugin.addRibbonIcon('book-open', 'Open verse context panel', () => {
+		void openVerseContext(plugin.app);
+	});
+}
+
+function registerConversion(plugin: SettingsHost): void {
 	plugin.addCommand({
 		id: 'convert-references-in-current-note',
 		name: 'Convert Bible references in current note',

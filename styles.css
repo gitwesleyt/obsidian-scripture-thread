@@ -13,3 +13,89 @@
 	width: 100%;
 	resize: vertical;
 }
+
+/*
+ * Verse context panel. Each level steps down in size, weight and colour:
+ * verse > overlapping group > note title > paragraph, with each heading's notes indented under it.
+ */
+.scripture-thread-heading {
+	display: flex;
+	align-items: center;
+	gap: var(--size-4-2);
+	padding-bottom: var(--size-4-1);
+	border-bottom: 1px solid var(--background-modifier-border);
+	color: var(--text-normal);
+}
+
+/* The fallbacks keep the order right even if a theme drops a size variable. */
+h3.scripture-thread-heading {
+	margin: 0 0 var(--size-4-3);
+	font-size: calc(var(--font-ui-large, 20px) + 4px);
+	font-weight: var(--font-bold);
+}
+
+h4.scripture-thread-heading {
+	margin: var(--size-4-5) 0 var(--size-4-3);
+	font-size: calc(var(--font-ui-medium, 15px) + 2px);
+	font-weight: var(--font-semibold);
+}
+
+.scripture-thread-verse + .scripture-thread-verse {
+	margin-top: var(--size-4-8);
+}
+
+
+.scripture-thread-count {
+	padding: 0 var(--size-4-2);
+	border-radius: var(--radius-l);
+	background-color: var(--background-modifier-hover);
+	font-size: calc(var(--font-ui-smaller, 12px) + 2px);
+	font-weight: var(--font-normal);
+	color: var(--text-muted);
+}
+
+.scripture-thread-group {
+	padding-left: var(--size-4-3);
+}
+
+.scripture-thread-note {
+	margin-bottom: var(--size-4-4);
+}
+
+.scripture-thread-note-title {
+	font-size: calc(var(--font-ui-small, 13px) + 2px);
+	font-weight: var(--font-semibold);
+	color: var(--text-normal);
+	text-decoration: none;
+}
+
+.scripture-thread-note-title:hover {
+	color: var(--text-accent);
+	text-decoration: underline;
+}
+
+.scripture-thread-mention {
+	margin-top: var(--size-4-1);
+	padding: var(--size-4-1) var(--size-4-2);
+	border-left: 2px solid var(--background-modifier-border);
+	font-size: calc(var(--font-ui-small, 13px) + 2px);
+	cursor: pointer;
+}
+
+.scripture-thread-mention:hover {
+	border-left-color: var(--interactive-accent);
+	background-color: var(--background-modifier-hover);
+}
+
+.scripture-thread-paragraph > :first-child {
+	margin-top: 0;
+}
+
+.scripture-thread-paragraph > :last-child {
+	margin-bottom: 0;
+}
+
+.scripture-thread-muted {
+	color: var(--text-faint);
+	font-size: calc(var(--font-ui-smaller, 12px) + 2px);
+}

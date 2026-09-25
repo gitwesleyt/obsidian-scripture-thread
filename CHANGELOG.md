@@ -8,6 +8,9 @@ follows [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- A verse context side panel: with the cursor on (or in a paragraph with) a verse or chapter
+  link, it lists every other note linking to that verse, with the paragraph around each link,
+  plus notes linking to overlapping passages.
 - Three commands that convert plain-text Bible references into alias wikilinks
   (`[[Psalms 23 3|Psalm 23:3]]`) in the current note, a folder, or the whole vault, creating any
   missing verse, chapter, book and testament notes.
