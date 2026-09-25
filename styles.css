@@ -20,7 +20,7 @@
  */
 .scripture-thread-verse-title {
 	margin: 0 0 var(--size-4-3);
-	font-size: var(--font-ui-larger);
+	font-size: calc(var(--font-ui-larger) + 2px);
 	font-weight: var(--font-bold);
 }
 
@@ -37,7 +37,7 @@
 	margin: var(--size-4-5) 0 var(--size-4-3);
 	padding-bottom: var(--size-4-1);
 	border-bottom: 1px solid var(--background-modifier-border);
-	font-size: var(--font-ui-medium);
+	font-size: calc(var(--font-ui-medium) + 2px);
 	font-weight: var(--font-semibold);
 	color: var(--text-normal);
 }
@@ -46,7 +46,7 @@
 	padding: 0 var(--size-4-2);
 	border-radius: var(--radius-l);
 	background-color: var(--background-modifier-hover);
-	font-size: var(--font-ui-smaller);
+	font-size: calc(var(--font-ui-smaller) + 2px);
 	font-weight: var(--font-normal);
 	color: var(--text-muted);
 }
@@ -60,7 +60,7 @@
 }
 
 .scripture-thread-note-title {
-	font-size: var(--font-ui-small);
+	font-size: calc(var(--font-ui-small) + 2px);
 	font-weight: var(--font-semibold);
 	color: var(--text-normal);
 	text-decoration: none;
@@ -75,7 +75,7 @@
 	margin-top: var(--size-4-1);
 	padding: var(--size-4-1) var(--size-4-2);
 	border-left: 2px solid var(--background-modifier-border);
-	font-size: var(--font-ui-small);
+	font-size: calc(var(--font-ui-small) + 2px);
 	cursor: pointer;
 }
 
@@ -94,5 +94,5 @@
 
 .scripture-thread-muted {
 	color: var(--text-faint);
-	font-size: var(--font-ui-smaller);
+	font-size: calc(var(--font-ui-smaller) + 2px);
 }
