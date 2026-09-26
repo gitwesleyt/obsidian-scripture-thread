@@ -1,8 +1,8 @@
 # Scripture Thread — Claude Code Brief
 
-Obsidian plugin. Two features only. Read this whole file before writing code.
+Obsidian plugin. Read this whole file before writing code.
 
-## Scope — build exactly these two features, nothing else
+## Features
 
 ### Feature 1: Verse context side panel
 When the cursor is on a Bible verse reference (a wikilink like `[[Psalm 23 3]]`), show a side
