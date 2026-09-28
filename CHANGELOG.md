@@ -7,6 +7,13 @@ follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- **Verse blocks**: a grey rounded border round a paragraph that links to a verse or chapter, in
+  Live Preview, Source mode and Reading view. Enter grows it to the new line; Enter again closes
+  it with a short animation, and you carry on writing outside. A blank line is all that closes a
+  block, so nothing extra is written into notes. Drawn in the theme's colours, and switched off
+  with the new **Verse blocks** setting.
+
 ## [1.1.0] - 2026-09-26
 
 ### Added

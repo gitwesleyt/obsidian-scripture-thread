@@ -37,7 +37,8 @@ a block that ends in a list takes three Enters.
 
 ## Drawing
 
-8. **Obsidian's theme only**: a 1px `--background-modifier-border` line down both sides of every
+8. **Obsidian's theme only**: a 1px `--background-modifier-border` line (`--background-modifier-border-hover`
+   in dark themes, where the plain one is too faint) down both sides of every
    line of the block, the top edge and `--radius-m` corners on the first line, the bottom edge and
    corners on the last. The text doesn't move when a box opens or closes.
 9. **Closing animation**: the border settles from `--text-muted` to its resting colour over 320ms

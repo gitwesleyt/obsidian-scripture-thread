@@ -5,7 +5,7 @@ export type LineSource = {
 	line(index: number): string;
 };
 
-type LinkSpan = { from: number; to: number; linkpath: string };
+export type LinkSpan = { from: number; to: number; linkpath: string };
 
 const WIKILINK = /!?\[\[([^\]\n]+)\]\]/g;
 const LIST_ITEM = /^\s*(?:[-*+]|\d+[.)])\s/;
@@ -35,7 +35,7 @@ export function linkpathOf(linktext: string): string {
 	return (withoutAlias.split('#')[0] ?? '').trim();
 }
 
-function linksIn(text: string): LinkSpan[] {
+export function linksIn(text: string): LinkSpan[] {
 	return [...text.matchAll(WIKILINK)]
 		.map((match) => ({
 			from: match.index,

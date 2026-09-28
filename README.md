@@ -16,6 +16,9 @@ references like `Psalm 23:3` in the middle of a sentence. When you're done editi
 conversion command and it rewrites detected references into wikilinks, creating the linked note
 (and its parent chain — verse → chapter → book → testament) automatically if it doesn't exist yet.
 
+**Keep a thought with its verse.** A paragraph that links to a verse gets a grey border, and it
+grows as you add lines under it. Press Enter twice to close it and carry on writing outside.
+
 Conversion is manual, not automatic-as-you-type — nothing changes in your document until you
 trigger it. Installing the plugin adds nothing to your vault either: notes and folders are only
 created when you run a conversion command.
@@ -77,6 +80,25 @@ keeps showing the last verse when you move away from a link. If you close it, it
 next time you land on a verse link; if you just switch to another sidebar tab or collapse the
 sidebar, it stays out of the way and updates in the background. You can also open it with the
 **Open verse context panel** command or the book icon in the ribbon.
+
+### Verse blocks
+A paragraph with a verse or chapter link gets a grey rounded border: a **verse block**. It's drawn
+in Live Preview, Source mode and Reading view, in your theme's own colours.
+
+- **Enter** at the end of the block gives you a new line inside the border straight away.
+- **Enter again** on that empty line closes the block: the border settles back round the paragraph
+  above, and what you write next is outside it. Moving off the empty line with the arrow keys or a
+  tap closes it too.
+- In a list, the second Enter only clears the empty bullet, as Obsidian always does, so it takes
+  a third to close. A quote or callout takes two.
+- A block is simply the lines between blank lines, so nothing extra is written into your note.
+  The whole paragraph is boxed, even lines above the link.
+
+Book and testament links (`[[Psalms]]`, `[[Old Testament]]`), embeds, and plain-text references
+you haven't converted yet don't make a block, and neither does the `[[John 3]]` line inside a
+verse note. Headings, code blocks, `$$` math, callouts and embeds are never inside a block; one
+directly under a paragraph ends its block. Nothing is boxed inside an embedded note or a hover
+preview. Turn the whole thing off with **Verse blocks** in the settings.
 
 ### Converting references
 Three commands are available from the command palette (Cmd/Ctrl+P, then type "Convert Bible").
@@ -173,6 +195,7 @@ a command twice is safe), Markdown links, and web addresses.
   of that location. The two testament notes themselves sit at the location's root. On by default.
 - **Standardize references** — writes references in one standard form, including links you've
   already converted (see Converting references). Off by default.
+- **Verse blocks** — draws the border round verse blocks (see Verse blocks). On by default.
 
 **Convert commands: Skipped Text** — applies to all three commands.
 - A switch for each built-in rule: **Frontmatter**, **Code blocks**, **Inline code**,
@@ -210,8 +233,11 @@ own.
   `-4:2` as plain text.
 - Very long ranges only count their first verse for the panel's overlap: `[[Psalms 119 1-176]]`
   overlaps Psalm 119:1 but not 119:50.
-- Mobile: the panel and conversion run entirely in-plugin (no external processes), so there's no
-  fundamental blocker, but mobile hasn't been specifically tested yet.
+- Verse blocks in Reading view: a section Obsidian doesn't give a position for isn't boxed. With
+  **Strict line breaks** on, Reading view runs a block's lines together into one paragraph.
+- A table needs a blank line above it, so a table is never inside a verse block.
+- Mobile: verse blocks were tried on iPhone and iPad. The panel and conversion run entirely
+  in-plugin (no external processes), but haven't been specifically tested on mobile yet.
 
 ## Development
 

@@ -260,7 +260,8 @@ These also go in `spec/verse-blocks.md`.
 5a. **No boxes inside an embed or a hover preview**, and the parent link that the converter
    writes into a verse note (`[[John 3]]` in `John 3 16.md`) doesn't open a block. It's the
    same `isParentLink` rule the context panel uses (spike finding).
-6. **Drawn in Obsidian's theme:** a 1px `--background-modifier-border` line down both sides of
+6. **Drawn in Obsidian's theme:** a 1px `--background-modifier-border` line (in dark themes,
+   `--background-modifier-border-hover`, since the plain one was too faint there) down both sides of
    every line, with the top edge and rounded (`--radius-m`) corners on the first line and the
    bottom edge and rounded corners on the last. The lines of text don't move when a box opens or
    closes.
@@ -361,14 +362,15 @@ Branch `spike/verse-blocks`, prerelease `1.2.0-beta.1`. **Done 2026-09-28:** you
   session 4 measures the retry on the iPhone
 
 ## 2. The rule file, and the box in the editor
-- [ ] `src/verse-block-rules.ts`: pure and without imports, so Verse Graph can copy it the way it
+- [x] `src/verse-block-rules.ts`: pure and without imports, so Verse Graph can copy it the way it
       copies `verse-rules.ts`. `verseBlocks(lines, opensBlock, caretLine?)` returns
       `{ startLine, endLine }[]` (0-based, inclusive), and `lineRole(block, line)` returns one of
-      `only | start | middle | end` `DW1`
-- [ ] `src/blocks/opens-block.ts`: the opener. Export `linksIn` from
+      `only | start | middle | end`. Also `growToCaret`, the caret rule on its own, so the
+      editor keeps the blocks while only the caret moves, and `blockAt` `DW1`
+- [x] `src/blocks/opens-block.ts`: the opener. Export `linksIn` from
       `src/context/links-at-cursor.ts` for it rather than copying it, and use `parseBibleLink`.
       It skips any line without `[[` before parsing anything `DW1`
-- [ ] Tests in `verse-block-rules.test.ts`:
+- [x] Tests in `verse-block-rules.test.ts`:
       - a one-line paragraph, and several lines
       - a link on a middle line (the lines above it are in the block)
       - blank and space-only lines end a block; two blocks one blank line apart
@@ -381,42 +383,76 @@ Branch `spike/verse-blocks`, prerelease `1.2.0-beta.1`. **Done 2026-09-28:** you
 
       Also `opens-block.test.ts`: embeds, book links and testament links don't open a block. And
       a timing test in the style of Verse Graph's `vault-graph.timing.test.ts` `DW1`
-- [ ] `src/blocks/verse-block-decorations.ts`: a `ViewPlugin` that rebuilds the line decorations
+- [x] `src/blocks/verse-block-decorations.ts`: a `ViewPlugin` that rebuilds the line decorations
       on `docChanged`, `viewportChanged` and `selectionSet`, and decorates only the visible
       lines `DW1`
-- [ ] `styles.css`: `.scripture-thread-verse-block` with start and end modifiers, in Obsidian's
+- [x] `styles.css`: `.scripture-thread-verse-block` with start and end modifiers, in Obsidian's
       theme variables only. Checked in the default light and dark themes and in one community
       theme `DW1 SPEC`
-- [ ] `src/commands/index.ts`: register the extension there, the single registration point
+- [x] `src/commands/index.ts`: register the extension there, the single registration point
       `SPEC`
+
+Built: 29 new tests (232 in all). The rules follow the spike: math, callouts and embed-only lines
+end a block, and `isParentLink` is exported from `find-mentions.ts` for the opener, which takes the
+note's path. `@codemirror/state` is pinned to `6.5.0`, the version `obsidian` asks for. Try it in
+`1.2.0-beta.2`.
+
+Tried on the Mac: the box shows in Live Preview and Source mode, math, callouts and embeds close
+neatly above, and there's no box inside the embed. The border was too faint in dark mode, so dark
+themes use the theme's next border step up (`1.2.0-beta.3`). Checked again in dark and in a
+community theme: both good. **Session 2 done.**
 
 **Done when:** `npm run check` is green, and on the Mac a verse link in a paragraph draws the box
 in Live Preview and Source mode, and a blank line ends it.
 
 ## 3. Enter: grow and close
-- [ ] Give the rule the caret's line: the main selection, only when nothing is selected, and only
+- [x] Give the rule the caret's line: the main selection, only when nothing is selected, and only
       on a blank line `DW2`
-- [ ] Closing animation: when a block loses its caret line and that line still exists and is
+- [x] Closing animation: when a block loses its caret line and that line still exists and is
       still blank, give the block's lines a `…-closing` class, and clear it after 320 ms with a
       `StateEffect`. It fires only on that change, not on deletes, pastes or undo `DW2`
-- [ ] Reduced motion in CSS. Check that nothing flickers between the first Enter and the redraw
-      (the web app's 200 ms bug) `DW2`
-- [ ] Tests for the closing check (pure), next to the rule tests `DW2`
+- [x] Reduced motion in CSS `DW2`
+- [x] Check that nothing flickers between the first Enter and the redraw (the web app's 200 ms
+      bug) `DW2`
+- [x] Tests for the closing check (pure), next to the rule tests `DW2`
+
+Built: `src/blocks/closing.ts` (`grownLine`, `closingBlock`) with 8 tests, 240 in all. The editor
+keeps the blocks between keystrokes and re-applies `growToCaret` on each caret move; the grown
+line's position follows edits (`mapPos` with `TrackDel`), so undoing the first Enter or deleting
+the line plays nothing. The border colour is a registered `@property` so the animation can fade
+it. Try it in `1.2.0-beta.4`.
+
+Tried in `1.2.0-beta.4` (2026-09-28): everything looked as expected. **Session 3 done.**
 
 **Done when:** on the Mac, and on the iPhone and iPad with both keyboards, Enter grows the box at
 once and a second Enter closes it with the animation. The next paragraph sits outside the box, and
 lists behave as the spike recorded. `DW3`
 
 ## 4. Reading view, the setting, and release
-- [ ] `src/blocks/verse-block-reading.ts`: a `registerMarkdownPostProcessor` that runs the same
+- [x] `src/blocks/verse-block-reading.ts`: a `registerMarkdownPostProcessor` that runs the same
       rule over `getSectionInfo(el).text` once per render (cached by that text) and marks each
       section's element as start, middle or end. A section without section info gets no box,
       which goes in the known limits `DW1`
-- [ ] The **Verse blocks** switch in `src/settings-data.ts` (with `withDefaults`) and
+- [x] The **Verse blocks** switch in `src/settings-data.ts` (with `withDefaults`) and
       `src/settings.ts`. Switching it off clears the editor through a `Compartment` or
       `workspace.updateOptions()`, and Reading view on its next render `SPEC`
-- [ ] README: a "Verse blocks" section and its limits (Live Preview widgets, Strict line breaks);
-      CHANGELOG; release `1.2.0` `SPEC`
+- [x] README: a "Verse blocks" section and its limits (Live Preview widgets, Strict line breaks);
+      CHANGELOG `SPEC`
+- [ ] Release `1.2.0` `SPEC`
+
+Built: the post-processor waits a frame so the section is on the page before asking
+`getSectionInfo`, and skips anything inside `.markdown-embed` or `.hover-popover`. Sections get
+`display: flow-root`, so a paragraph's margins stay inside the box and the sides run unbroken
+into the next section. The switch empties the array given to `registerEditorExtension`, calls
+`workspace.updateOptions()` and re-renders every open Reading view. Try it in `1.2.0-beta.5`.
+
+Tried in `beta.5`: Reading view matched, but switching off left the boxes in Reading view, because
+Obsidian keeps the sections it has already drawn and re-rendering didn't redraw them. Fixed in
+`1.2.0-beta.6`: Reading view always marks its sections, and the switch puts a class on the body
+of every window (`scripture-thread-verse-blocks-on`) that the CSS needs before it draws anything.
+The editor still drops its extension when off, so it does no work. Tried in `beta.6`: off and back on
+both work in Reading view.
+
 
 **Done when:** the test note shows the same boxes in Reading view on the Mac and on iOS, the switch
 turns them off in all three modes, and `1.2.0` is in your real vault through BRAT.

@@ -196,7 +196,7 @@ function linkOnly(reference: ReferenceCache): Paragraph {
  * not something the writer said about John 3, so it would only bury the real
  * mentions under every verse note of the chapter.
  */
-function isParentLink(path: string, destination: BibleLink): boolean {
+export function isParentLink(path: string, destination: BibleLink): boolean {
 	const note = parseBibleLink(path);
 	return (
 		destination.level === 'chapter' &&

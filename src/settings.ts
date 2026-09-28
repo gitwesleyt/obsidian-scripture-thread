@@ -38,6 +38,8 @@ const CONVERSION_FOLDER_LABELS: Record<ConversionFolderLocation, string> = {
 export interface SettingsHost extends Plugin {
 	settings: ScriptureThreadSettings;
 	saveSettings(): Promise<void>;
+	/** Turns the verse block border on or off everywhere, to match the setting. */
+	applyVerseBlocks(): void;
 }
 
 type FolderKey = 'notesFolder' | 'conversionFolder';
@@ -119,6 +121,21 @@ export class ScriptureThreadSettingTab extends PluginSettingTab {
 					toggle.setValue(settings.standardizeReferences).onChange(async (value) => {
 						settings.standardizeReferences = value;
 						await this.host.saveSettings();
+					}),
+				);
+		});
+
+		group.addSetting((setting) => {
+			setting
+				.setName('Verse blocks')
+				.setDesc(
+					'Draw a border round a paragraph that links to a verse, and the lines you add under it. A blank line closes it.',
+				)
+				.addToggle((toggle) =>
+					toggle.setValue(settings.verseBlocks).onChange(async (value) => {
+						settings.verseBlocks = value;
+						await this.host.saveSettings();
+						this.host.applyVerseBlocks();
 					}),
 				);
 		});
