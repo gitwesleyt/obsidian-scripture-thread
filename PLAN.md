@@ -325,6 +325,26 @@ and a heading. Record what's found in a "Spike findings" table here. `DW1 DW2 DW
 **Done when:** every row has an answer, you've seen the prototype box on the Mac and on your
 iPhone, and the rules above have been corrected wherever a finding contradicts them.
 
+### Spike findings
+Branch `spike/verse-blocks`, prerelease `1.2.0-beta.1`. Filled in as each device reports.
+
+| Question | Mac | iPhone | iPad |
+|---|---|---|---|
+| Enter in a paragraph | One `"\n"`, event `input`. The box grows on the first Enter and closes on the second; also closes when the caret is clicked away. Typing on the grown line keeps it in, and two more Enters close it | — | — |
+| Enter in a list, checkbox, quote, callout | Not tried yet | — | — |
+| Live Preview widgets (table, callout, math, embed) | Not reported yet | — | — |
+| Drawing: box-shadow vs border | No visible difference. **Keep box-shadow**, which can't move text | — | — |
+| Reading view | 15 sections boxed; 11 with no section info (`div`, `p`, `ul`), probably the embedded note's own sections. Not yet looked at by eye | — | — |
+| Timing, 10,000 lines, in the app | Median 2.5 ms, p95 3.5 ms, max 8.7 ms: **over the 2 ms target**. The rule alone is ~1 ms in Node; the rest is reading the lines out of the editor and running on every caret move | — | — |
+| Changes with no user event | Another plugin rewrote `{Psalms }` → `{Psalms 23:1}`, and 6 characters were deleted on an empty line several times. Neither comes from this plugin. The close check shouldn't depend on the user event, and doesn't | — | — |
+
+**Changes to the plan so far:**
+- Timing: session 2 works out the blocks only when the text changes, and applies the caret rule
+  (rule 3) to the stored blocks when only the caret moves. It also reads lines straight from the
+  editor's text instead of copying them into an array. If that's still over 2 ms at 10,000 lines,
+  it works outward from the visible lines instead
+- Drawing: inset `box-shadow`
+
 ## 2. The rule file, and the box in the editor
 - [ ] `src/verse-block-rules.ts`: pure and without imports, so Verse Graph can copy it the way it
       copies `verse-rules.ts`. `verseBlocks(lines, opensBlock, caretLine?)` returns
