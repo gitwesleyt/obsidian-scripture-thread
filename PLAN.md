@@ -553,3 +553,23 @@ skipped regions still come from the whole note (~3 ms): **3.6 ms** in all. The t
   - Paste a paragraph of references, then move off → converted
 
 Tried in `1.3.0-beta.1` (2026-09-28): looks good.
+
+---
+
+# Housekeeping and small improvements
+
+- [x] Delete the merged `feature/live-conversion` branch, locally and on GitHub
+- [ ] README: drop "haven't been specifically tested on mobile" once the panel and the three
+      commands have been tried on the iPhone and iPad
+- [x] **Convert on leaving a note.** CM6 destroys the view plugin when Obsidian swaps the note
+      out or closes the tab, and the editor can't be changed then, so
+      `src/live/convert-on-close.ts` writes the conversion to the saved file. It checks at 0, 250
+      and 1000 ms for Obsidian's save, and writes only when the file is exactly the editor's text
+      and the note isn't open in another pane. The note's path is recorded while typing, since
+      by teardown Obsidian may already point the editor at the next note. 3 tests with an
+      in-memory vault
+- [ ] Try it in a beta: switch notes, close the tab, quit Obsidian, and a note open in two panes
+- [ ] **Settings search: parked.** Obsidian 1.13's `getSettingDefinitions()` would need
+      `minAppVersion` 1.13.0, and you want older versions supported for a public release. A
+      workaround is open for your decision
+

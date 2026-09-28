@@ -7,6 +7,11 @@ follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+- **Convert as you type** also converts the line you were on when you switch to another note or
+  close it. That conversion is written to the saved note, so it can't be undone in the editor, and
+  it's skipped if the note is open in another pane.
+
 ## [1.3.0] - 2026-09-29
 
 ### Added

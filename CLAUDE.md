@@ -85,6 +85,9 @@ chain.
   - The same rules as the commands: Skipped text, alias form, Standardize (only the links typed
     on the line), semicolons, hidden characters, and its parent chain created at once. A reference
     after an unclosed `[[` or `{` on its line is left alone: a link still being typed.
+  - **Leaving the note** (switching notes, closing the tab) converts what's still waiting on the
+    caret's line by writing to the saved file — only when the file is exactly the editor's text
+    and the note isn't open in another pane, else nothing. That one can't be undone in the editor.
   - Skips the whole-vault **excluded folders**. No Notice.
   - The detector runs on the typed lines only; skipped regions come from the whole note.
 - Conversion produces the linked note **structure only** — do not populate new verse notes with
