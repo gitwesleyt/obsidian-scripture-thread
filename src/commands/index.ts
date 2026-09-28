@@ -1,4 +1,5 @@
 import { TFolder } from 'obsidian';
+import { verseBlockDecorations } from '../blocks/verse-block-decorations';
 import { cursorTracker } from '../context/cursor-tracker';
 import { ScriptureThreadSettingTab, type SettingsHost } from '../settings';
 import { VERSE_CONTEXT_VIEW, VerseContextView } from '../ui/verse-context-view';
@@ -15,6 +16,11 @@ export function registerAll(plugin: SettingsHost): void {
 	plugin.addSettingTab(new ScriptureThreadSettingTab(plugin.app, plugin));
 	registerVerseContext(plugin);
 	registerConversion(plugin);
+	registerVerseBlocks(plugin);
+}
+
+function registerVerseBlocks(plugin: SettingsHost): void {
+	plugin.registerEditorExtension(verseBlockDecorations);
 }
 
 function registerVerseContext(plugin: SettingsHost): void {

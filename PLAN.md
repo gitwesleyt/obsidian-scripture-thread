@@ -361,14 +361,15 @@ Branch `spike/verse-blocks`, prerelease `1.2.0-beta.1`. **Done 2026-09-28:** you
   session 4 measures the retry on the iPhone
 
 ## 2. The rule file, and the box in the editor
-- [ ] `src/verse-block-rules.ts`: pure and without imports, so Verse Graph can copy it the way it
+- [x] `src/verse-block-rules.ts`: pure and without imports, so Verse Graph can copy it the way it
       copies `verse-rules.ts`. `verseBlocks(lines, opensBlock, caretLine?)` returns
       `{ startLine, endLine }[]` (0-based, inclusive), and `lineRole(block, line)` returns one of
-      `only | start | middle | end` `DW1`
-- [ ] `src/blocks/opens-block.ts`: the opener. Export `linksIn` from
+      `only | start | middle | end`. Also `growToCaret`, the caret rule on its own, so the
+      editor keeps the blocks while only the caret moves, and `blockAt` `DW1`
+- [x] `src/blocks/opens-block.ts`: the opener. Export `linksIn` from
       `src/context/links-at-cursor.ts` for it rather than copying it, and use `parseBibleLink`.
       It skips any line without `[[` before parsing anything `DW1`
-- [ ] Tests in `verse-block-rules.test.ts`:
+- [x] Tests in `verse-block-rules.test.ts`:
       - a one-line paragraph, and several lines
       - a link on a middle line (the lines above it are in the block)
       - blank and space-only lines end a block; two blocks one blank line apart
@@ -381,14 +382,19 @@ Branch `spike/verse-blocks`, prerelease `1.2.0-beta.1`. **Done 2026-09-28:** you
 
       Also `opens-block.test.ts`: embeds, book links and testament links don't open a block. And
       a timing test in the style of Verse Graph's `vault-graph.timing.test.ts` `DW1`
-- [ ] `src/blocks/verse-block-decorations.ts`: a `ViewPlugin` that rebuilds the line decorations
+- [x] `src/blocks/verse-block-decorations.ts`: a `ViewPlugin` that rebuilds the line decorations
       on `docChanged`, `viewportChanged` and `selectionSet`, and decorates only the visible
       lines `DW1`
 - [ ] `styles.css`: `.scripture-thread-verse-block` with start and end modifiers, in Obsidian's
       theme variables only. Checked in the default light and dark themes and in one community
       theme `DW1 SPEC`
-- [ ] `src/commands/index.ts`: register the extension there, the single registration point
+- [x] `src/commands/index.ts`: register the extension there, the single registration point
       `SPEC`
+
+Built: 29 new tests (232 in all). The rules follow the spike: math, callouts and embed-only lines
+end a block, and `isParentLink` is exported from `find-mentions.ts` for the opener, which takes the
+note's path. `@codemirror/state` is pinned to `6.5.0`, the version `obsidian` asks for. Try it in
+`1.2.0-beta.2`.
 
 **Done when:** `npm run check` is green, and on the Mac a verse link in a paragraph draws the box
 in Live Preview and Source mode, and a blank line ends it.
