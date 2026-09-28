@@ -6,6 +6,8 @@ export default class ScriptureThreadPlugin extends Plugin {
 	settings: ScriptureThreadSettings = withDefaults(null);
 	/** Set by `registerAll`, which wires the verse blocks in. */
 	applyVerseBlocks = (): void => {};
+	/** Set by `registerAll`, which wires live conversion in. */
+	applyLiveConversion = (): void => {};
 
 	async onload() {
 		await this.loadSettings();

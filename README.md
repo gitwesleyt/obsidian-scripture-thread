@@ -19,9 +19,9 @@ conversion command and it rewrites detected references into wikilinks, creating 
 **Keep a thought with its verse.** A paragraph that links to a verse gets a grey border, and it
 grows as you add lines under it. Press Enter twice to close it and carry on writing outside.
 
-Conversion is manual, not automatic-as-you-type — nothing changes in your document until you
-trigger it. Installing the plugin adds nothing to your vault either: notes and folders are only
-created when you run a conversion command.
+Conversion is manual unless you turn on **Convert as you type** — nothing changes in your
+document until you trigger it. Installing the plugin adds nothing to your vault either: notes and
+folders are only created when a reference is converted.
 
 ## Installation
 
@@ -136,6 +136,19 @@ Links you've already converted are tidied the same way the next time you run a c
 `[[Psalms 23 1|Psalm 23:1]]`. Where a link points never changes, and link text that isn't a
 reference to the same passage — `[[John 3 16|this verse]]` — is left as you wrote it.
 
+**Convert as you type.** Turn this on in Settings and a reference you type or paste becomes a
+link as soon as you leave its line — press Enter, use an arrow key, or tap elsewhere — and its
+notes are created. Nothing changes while you're still on the line, so `John 3` isn't linked
+before you've typed `:16`. It follows the same rules as the commands: the skipped text, the alias
+form, and Standardize references.
+
+- **Undo turns the link back into the text you typed**, and it stays plain until you edit it.
+  Any notes it created stay.
+- Only what you type is converted. An old plain reference elsewhere in the note waits for a
+  command.
+- Nothing happens in the whole-vault **excluded folders**, so templates stay as they are.
+- A reference after a `[[` or `{` you haven't closed yet on that line is left alone.
+
 ### What it recognizes
 
 | You write | It links to |
@@ -195,6 +208,8 @@ a command twice is safe), Markdown links, and web addresses.
   of that location. The two testament notes themselves sit at the location's root. On by default.
 - **Standardize references** — writes references in one standard form, including links you've
   already converted (see Converting references). Off by default.
+- **Convert as you type** — converts the references on a line when you leave it (see Converting
+  references). Off by default.
 - **Verse blocks** — draws the border round verse blocks (see Verse blocks). On by default.
 
 **Convert commands: Skipped Text** — applies to all three commands.
@@ -220,9 +235,9 @@ own.
   instead.
 
 **Convert command: Whole Vault**
-- **Excluded folders** — one folder per line, skipped by the whole-vault command (for example
-  templates or archives). The other two commands don't use this list, since there you've already
-  chosen exactly what to convert.
+- **Excluded folders** — one folder per line, skipped by the whole-vault command and by convert as
+  you type (for example templates or archives). The other two commands don't use this list, since
+  there you've already chosen exactly what to convert.
 
 ## What it doesn't do (yet)
 
@@ -236,6 +251,9 @@ own.
 - Verse blocks in Reading view: a section Obsidian doesn't give a position for isn't boxed. With
   **Strict line breaks** on, Reading view runs a block's lines together into one paragraph.
 - A table needs a blank line above it, so a table is never inside a verse block.
+- Convert as you type: a reference still on the caret's line when you switch notes or close the
+  note isn't converted; run a command to catch it. A reference that runs across a line break
+  isn't found.
 - Mobile: verse blocks were tried on iPhone and iPad. The panel and conversion run entirely
   in-plugin (no external processes), but haven't been specifically tested on mobile yet.
 

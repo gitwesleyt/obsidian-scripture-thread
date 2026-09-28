@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { applyEdits, convertText } from './convert-text';
+import { applyEdits, convertText, DEFAULT_CONVERSION_OPTIONS } from './convert-text';
 
 function converted(text: string): string {
 	return applyEdits(text, convertText(text).edits);
@@ -64,5 +64,47 @@ describe('invisible characters', () => {
 
 	it('keeps offsets right after an emoji and a hidden character', () => {
 		expect(converted('🙏\u202d John 3:16')).toBe('🙏\u202d [[John 3 16|John 3:16]]');
+	});
+});
+
+describe('converting only the text just typed', () => {
+	const standardize = { ...DEFAULT_CONVERSION_OPTIONS, standardizeReferences: true };
+
+	function typed(text: string, typedText: string, options = DEFAULT_CONVERSION_OPTIONS): string {
+		const from = text.indexOf(typedText);
+		return applyEdits(text, convertText(text, options, [{ from, to: from + typedText.length }]).edits);
+	}
+
+	it('converts a reference the typed text overlaps, and nothing else', () => {
+		expect(typed('Old John 3:16. New Ps 23:1.', 'New Ps 23:1')).toBe(
+			'Old John 3:16. New [[Psalms 23 1|Ps 23:1]].',
+		);
+	});
+
+	it('converts the whole reference when only its end was typed', () => {
+		expect(typed('John 3:16 today', ':16')).toBe('[[John 3 16|John 3:16]] today');
+	});
+
+	it('converts nothing when nothing was typed', () => {
+		expect(convertText('John 3:16', DEFAULT_CONVERSION_OPTIONS, []).edits).toEqual([]);
+	});
+
+	it('leaves a link or a Bible Verse block still being typed', () => {
+		expect(typed('see [[John 3:16', 'John 3:16')).toBe('see [[John 3:16');
+		expect(typed('see {John 3:16', 'John 3:16')).toBe('see {John 3:16');
+		expect(typed('[[Psalms 23]] and John 3:16', 'John 3:16')).toBe(
+			'[[Psalms 23]] and [[John 3 16|John 3:16]]',
+		);
+	});
+
+	it('still skips a reference inside a code block opened on an earlier line', () => {
+		const note = '```\nJohn 3:16\n```';
+		expect(typed(note, 'John 3:16')).toBe(note);
+	});
+
+	it('standardizes only the links the typed text overlaps', () => {
+		expect(typed('[[John 3 16|Jn 3.16]] and [[Psalms 23 1|Ps 23:1]]', 'Ps 23:1', standardize)).toBe(
+			'[[John 3 16|Jn 3.16]] and [[Psalms 23 1|Psalm 23:1]]',
+		);
 	});
 });

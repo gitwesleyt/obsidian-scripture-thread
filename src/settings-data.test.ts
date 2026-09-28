@@ -16,6 +16,7 @@ describe('loading saved settings', () => {
 			standardizeReferences: false,
 			ignore: DEFAULT_IGNORE_RULES,
 			verseBlocks: true,
+			liveConversion: false,
 		});
 	});
 

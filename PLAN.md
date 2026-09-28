@@ -474,8 +474,82 @@ notes for each case: good. On the phone in `0.6.0-beta.1`, through BRAT: good. *
 **Done when:** choosing a note in the graph shows the block citing the selected verse boxed, on
 the Mac and on the phone.
 
-## Later, in its own plan: live conversion
-You want references recognised as you type, not only when a command runs. It's on CLAUDE.md's
-out-of-scope list, and gets its own plan after this one. Nothing here is in its way: the
-conversions it writes are links, and links open blocks. If a reference that hasn't been converted
-yet should open a box too, only `opensBlock` needs to change.
+---
+
+# Live conversion
+
+Brings "a real-time/live scan mode for conversion" off CLAUDE.md's out-of-scope list, at your
+request. Verse blocks key off links, so a reference converted live opens a box with no change to
+`opensBlock`.
+
+- `DW1` a reference typed or pasted on a line becomes an alias link when the caret leaves the line,
+  and its parent chain is created
+- `DW2` nothing changes while the caret is still on the line; undo turns the link back into plain
+  text, which then stays plain
+- `DW3` it works on the Mac and on iOS with both keyboards, and the first Enter after a reference
+  opens its verse block
+- `SPEC` the brief, the single registration point, the setting, docs
+
+## Decisions
+- [x] **Trigger: the caret leaves the line** (Enter, an arrow key, a tap, or the editor losing
+      focus). The detector matches `John 3` before `:16` is typed, so it can't convert on a match
+- [x] **Undo turns the link back into plain text.** The conversion is its own undo step, and
+      only `input` transactions count as typed text, so an undo's text is never reconverted
+- [x] **Notes are created right away,** as the commands do. An undo leaves them behind
+- [x] **Off by default,** and it skips the whole-vault excluded folders (templates)
+- [x] A reference after an unclosed `[[` or `{` on its line is left alone (Obsidian's `[[`
+      suggester, Bible Verse)
+- [x] No Notice
+
+## 0. Brief
+- [x] CLAUDE.md: live conversion off the out-of-scope list; a "convert as you type" group in
+      Feature 2; excluded folders also apply to it; the on-keystroke convention and conVERsum note
+      reworded `SPEC`
+
+## 1. Pure core
+- [x] `convert-text.ts`: `convertText(text, options, within?)` keeps only the references and
+      standardized links that overlap `within`, and skips a reference after an unclosed `[[`/`{`
+      `DW1 DW2`
+- [x] `src/live/touched-ranges.ts`: `touchedRanges`, a `StateField` of the text typed and not yet
+      converted, filled by `input` transactions only; the `convertedTyping` annotation;
+      `splitAtCaretLine` `DW1 DW2`
+- [x] Tests: `convert-text.test.ts` (6 new), `touched-ranges.test.ts` (12, including undo through
+      `@codemirror/commands`' real history), `convert-text.timing.test.ts` `DW1 DW2`
+
+**Timing finding:** running the detector over a whole 10,000-line note took ~209 ms on the Mac,
+203 ms of it in `findVerseReferences`. The detector now runs on the typed lines only, and the
+skipped regions still come from the whole note (~3 ms): **3.6 ms** in all. The test guards 10 ms.
+
+## 2. Editor layer
+- [x] `src/live/live-conversion.ts`: a `ViewPlugin` that, after a change, caret move or focus
+      change, converts the touched ranges off the caret's line in a microtask. The transaction
+      carries `isolateHistory.of('full')`, `userEvent: 'scripture-thread.convert'` and the ranges
+      still waiting; then `NoteCreator` makes the chains. Skips excluded folders and IME
+      composition `DW1 DW2`
+- [x] `@codemirror/commands` pinned to `6.8.1` as a devDependency for `isolateHistory`; esbuild
+      already keeps it external, so Obsidian's own copy runs `SPEC`
+
+## 3. Setting and registration
+- [x] `liveConversion: false` in `settings-data.ts`; **Convert as you type** toggle in General;
+      the Excluded folders description mentions it `SPEC`
+- [x] `src/commands/index.ts`: `registerLiveConversion`, the same array + `updateOptions()`
+      pattern as verse blocks, via `plugin.applyLiveConversion()` `SPEC`
+
+## 4. Docs and release
+- [x] README (Convert as you type, Settings, limits), CHANGELOG `SPEC`
+- [ ] Beta `1.3.0-beta.1` through BRAT, then release `1.3.0` `SPEC`
+
+## Verification
+- [x] `npm run check`: build, lint 0 errors (the 10 known warnings), all tests green
+- [x] Manual, on the Mac, then iPhone and iPad with both keyboards, in the test vault `DW1 DW2 DW3`:
+  - `Ps 23:1`, then Enter → `[[Psalms 23 1|Ps 23:1]]`, notes created, the verse block opens on the
+    new line without flicker; a second Enter closes it
+  - `John 3`, pause, `:16`, arrow down → one link to `John 3 16`
+  - Undo → plain `Ps 23:1`, and it stays plain as you move about; edit it → converts
+  - Code fence, callout, `{John 3:16}`, `--John1:1`, `%%…%%`, an unfinished `[[John 3:16` →
+    untouched
+  - An old plain reference elsewhere isn't converted; an excluded folder isn't; setting off →
+    nothing converts
+  - Paste a paragraph of references, then move off → converted
+
+Tried in `1.3.0-beta.1` (2026-09-28): looks good.
