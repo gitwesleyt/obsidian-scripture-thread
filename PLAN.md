@@ -253,8 +253,13 @@ These also go in `spec/verse-blocks.md`.
    second Enter, or an arrow key or a tap. The box shuts back over the paragraph above with the
    closing animation. Typing on the line instead joins it to the paragraph, so it stays in. Enter
    from the new line after that is an ordinary new paragraph, outside the box.
-5. **Never boxed:** frontmatter, fenced code, and heading lines. A heading also ends a run.
-   Embeds (`![[…]]`) don't open a block.
+5. **Never boxed, and each ends a run:** frontmatter, fenced code, `$$` math, callouts, a line
+   that is only an embed, and headings. A verse link in any of them opens nothing. Live Preview
+   draws these as widgets that hide their lines, so the box closes neatly above them instead of
+   being left open (spike finding). Embeds (`![[…]]`) don't open a block anywhere.
+5a. **No boxes inside an embed or a hover preview**, and the parent link that the converter
+   writes into a verse note (`[[John 3]]` in `John 3 16.md`) doesn't open a block. It's the
+   same `isParentLink` rule the context panel uses (spike finding).
 6. **Drawn in Obsidian's theme:** a 1px `--background-modifier-border` line down both sides of
    every line, with the top edge and rounded (`--radius-m`) corners on the first line and the
    bottom edge and rounded corners on the last. The lines of text don't move when a box opens or
@@ -330,12 +335,12 @@ Branch `spike/verse-blocks`, prerelease `1.2.0-beta.1`. Filled in as each device
 
 | Question | Mac | iPhone | iPad |
 |---|---|---|---|
-| Enter in a paragraph | One `"\n"`, event `input`. The box grows on the first Enter and closes on the second; also closes when the caret is clicked away. Typing on the grown line keeps it in, and two more Enters close it | — | — |
-| Enter in a list, checkbox, quote, callout | Not tried yet | — | — |
-| Live Preview widgets (table, callout, math, embed) | Not reported yet | — | — |
+| Enter in a paragraph | One `"\n"`, event `input`. The box grows on the first Enter and closes on the second; also closes when the caret is clicked away. Typing on the grown line keeps it in, and two more Enters close it | Same as the Mac, on-screen keyboard: one `"\n"`, closes on the second Enter | — |
+| Enter in a list, checkbox, quote, callout | Not tried yet | **Checkbox:** Enter continues it (`\n- [ ] `), Enter again clears the bullet (6 characters deleted), and a third Enter closes: three Enters, as expected. **Quote and callout:** Enter continues it (`\n> `), and Enter again replaces the `> ` with a new line, which closes: two Enters. The on-screen keyboard also rewrites the last typed letter as part of Enter (`1del+"x\n…"`) | — |
+| Live Preview widgets (table, callout, math, embed) | Not reported yet | **Callout:** no box at all, because the rendered callout hides its lines. **Math (`$$`) and embed:** the box's top and sides are drawn above them, then left open where the widget starts. **Table:** shows as raw `\|` text, most likely because Obsidian needs a blank line before a table, so one directly under a paragraph is never a table; being in a block isn't the cause. **Quote and checkbox list:** fine. **Heading:** correctly unboxed. The embedded note's own `[[John 3]]` line was boxed inside the embed | — |
 | Drawing: box-shadow vs border | No visible difference. **Keep box-shadow**, which can't move text | — | — |
-| Reading view | 15 sections boxed; 11 with no section info (`div`, `p`, `ul`), probably the embedded note's own sections. Not yet looked at by eye | — | — |
-| Timing, 10,000 lines, in the app | Median 2.5 ms, p95 3.5 ms, max 8.7 ms: **over the 2 ms target**. The rule alone is ~1 ms in Node; the rest is reading the lines out of the editor and running on every caret move | — | — |
+| Reading view | 15 sections boxed; 11 with no section info (`div`, `p`, `ul`), probably the embedded note's own sections. Not yet looked at by eye | Only 2 sections boxed; 86 with no section info. Not yet looked at by eye | — |
+| Timing, 10,000 lines, in the app | Median 2.5 ms, p95 3.5 ms, max 8.7 ms: **over the 2 ms target**. The rule alone is ~1 ms in Node; the rest is reading the lines out of the editor and running on every caret move | Median 6 ms, p95 8 ms, max 22 ms: **well over** | — |
 | Changes with no user event | Another plugin rewrote `{Psalms }` → `{Psalms 23:1}`, and 6 characters were deleted on an empty line several times. Neither comes from this plugin. The close check shouldn't depend on the user event, and doesn't | — | — |
 
 **Changes to the plan so far:**
@@ -343,7 +348,17 @@ Branch `spike/verse-blocks`, prerelease `1.2.0-beta.1`. Filled in as each device
   (rule 3) to the stored blocks when only the caret moves. It also reads lines straight from the
   editor's text instead of copying them into an array. If that's still over 2 ms at 10,000 lines,
   it works outward from the visible lines instead
+- Timing, after the iPhone: caching the blocks isn't enough at 6 ms. Session 2 also keeps each
+  line's kind (blank, heading, fence, holds a verse link) and re-reads only the lines an edit
+  touched. Putting runs together from the stored kinds is a cheap loop, and the regex and
+  `parseBibleLink` only run on changed lines. Target: under 2 ms on the iPhone at 10,000 lines
 - Drawing: inset `box-shadow`
+- Rules 5 and 5a, decided with you after the iPhone: math, callouts and embed-only lines end a
+  block; nothing is boxed inside embeds; parent links in verse notes don't open a block. The
+  opener gets the note's path so it can apply `isParentLink` (export it from
+  `src/context/find-mentions.ts`)
+- Reading view: the post-processor retries `getSectionInfo` once the element is attached, and
+  session 4 measures the retry on the iPhone
 
 ## 2. The rule file, and the box in the editor
 - [ ] `src/verse-block-rules.ts`: pure and without imports, so Verse Graph can copy it the way it

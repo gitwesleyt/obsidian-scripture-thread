@@ -14,8 +14,12 @@ Verse Graph copies this file and that one together.
 2. **The whole run is boxed**, including lines above the link: Reading view draws a paragraph as
    one element, and half of one can't be boxed.
 3. **A blank line ends it.** A line of only spaces or tabs is blank.
-4. **Never boxed:** frontmatter, fenced code, and heading lines. A heading ends a run, and a link
-   in a heading or a code block opens nothing.
+4. **Never boxed, and each ends a run:** frontmatter, fenced code, `$$` math, callouts, a line
+   that is only an embed, and headings. A link in any of them opens nothing. Live Preview draws
+   these as widgets that hide their lines, so a box running into one would be left open.
+4a. **No boxes inside an embed or a hover preview**, and a verse note's parent link (the
+   `[[John 3]]` the converter writes into `John 3 16.md`, as `isParentLink` decides) doesn't open
+   a block.
 
 ## Enter
 
@@ -53,6 +57,10 @@ a block that ends in a list takes three Enters.
 | `[[John 3 16]] one.` / *(blank)* / `\|` | line 1 (second Enter: closed) |
 | `[[John 3 16]] one.` / `- a point` / `- another` | lines 1–3 |
 | `[[John 3 16]] one.` / `## Heading` / `text` | line 1 |
+| `[[John 3 16]] one.` / `$$` / `x` / `$$` | line 1 |
+| `[[John 3 16]] one.` / `![[Other note]]` | line 1 |
+| `> [!note]` / `> [[John 3 16]]` | none |
+| `[[John 3]]` as the parent line of `John 3 16.md` | none |
 | `[[Psalms]] and [[Old Testament]]` | none |
 | `![[John 3 16]]` | none |
 | `John 3:16, not yet converted` | none |

@@ -110,7 +110,10 @@ Live Preview, Source mode and Reading view, on Mac, iPhone and iPad. Full rules:
 - **The empty line holding the caret, directly under a block, is drawn inside it** (the first
   Enter). When the caret leaves that line and it's still empty, the block closes with the
   animation (the second Enter, an arrow key or a tap).
-- **Never boxed:** frontmatter, fenced code and headings; a heading also ends a run.
+- **Never boxed, and each ends a run:** frontmatter, fenced code, `$$` math, callouts, embed-only
+  lines and headings — Live Preview renders them as widgets that would leave the box open.
+- **No boxes inside embeds or hover previews**, and a verse note's parent link (`[[John 3]]` in
+  `John 3 16.md`, the `isParentLink` rule) doesn't open a block.
 - **Closing animation:** the border colour settles from `--text-muted` to its resting colour over
   320ms `ease-out`, on every line of the block at once; `prefers-reduced-motion` removes it.
 - **Setting: Verse blocks**, in General, on by default; off removes the border in all three modes.
