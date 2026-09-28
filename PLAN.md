@@ -337,7 +337,7 @@ Branch `spike/verse-blocks`, prerelease `1.2.0-beta.1`. Filled in as each device
 |---|---|---|---|
 | Enter in a paragraph | One `"\n"`, event `input`. The box grows on the first Enter and closes on the second; also closes when the caret is clicked away. Typing on the grown line keeps it in, and two more Enters close it | Same as the Mac, on-screen keyboard: one `"\n"`, closes on the second Enter | — |
 | Enter in a list, checkbox, quote, callout | Not tried yet | **Checkbox:** Enter continues it (`\n- [ ] `), Enter again clears the bullet (6 characters deleted), and a third Enter closes: three Enters, as expected. **Quote and callout:** Enter continues it (`\n> `), and Enter again replaces the `> ` with a new line, which closes: two Enters. The on-screen keyboard also rewrites the last typed letter as part of Enter (`1del+"x\n…"`) | — |
-| Live Preview widgets (table, callout, math, embed) | Not reported yet | **Callout:** no box at all, because the rendered callout hides its lines. **Math (`$$`) and embed:** the box's top and sides are drawn above them, then left open where the widget starts. **Table:** shows as raw `\|` text, most likely because Obsidian needs a blank line before a table, so one directly under a paragraph is never a table; being in a block isn't the cause. **Quote and checkbox list:** fine. **Heading:** correctly unboxed. The embedded note's own `[[John 3]]` line was boxed inside the embed | — |
+| Live Preview widgets (table, callout, math, embed) | Not reported yet | **Callout:** no box at all, because the rendered callout hides its lines. **Math (`$$`) and embed:** the box's top and sides are drawn above them, then left open where the widget starts. **Table:** shows as raw `\|` text because Obsidian needs a blank line before a table (you checked: it renders once it's outside the block). A table is never in a block, which is fine. **Quote and checkbox list:** fine. **Heading:** correctly unboxed. The embedded note's own `[[John 3]]` line was boxed inside the embed | — |
 | Drawing: box-shadow vs border | No visible difference. **Keep box-shadow**, which can't move text | — | — |
 | Reading view | 15 sections boxed; 11 with no section info (`div`, `p`, `ul`), probably the embedded note's own sections. Not yet looked at by eye | Only 2 sections boxed; 86 with no section info. Not yet looked at by eye | — |
 | Timing, 10,000 lines, in the app | Median 2.5 ms, p95 3.5 ms, max 8.7 ms: **over the 2 ms target**. The rule alone is ~1 ms in Node; the rest is reading the lines out of the editor and running on every caret move | Median 6 ms, p95 8 ms, max 22 ms: **well over** | — |
@@ -346,12 +346,12 @@ Branch `spike/verse-blocks`, prerelease `1.2.0-beta.1`. Filled in as each device
 **Changes to the plan so far:**
 - Timing: session 2 works out the blocks only when the text changes, and applies the caret rule
   (rule 3) to the stored blocks when only the caret moves. It also reads lines straight from the
-  editor's text instead of copying them into an array. If that's still over 2 ms at 10,000 lines,
-  it works outward from the visible lines instead
-- Timing, after the iPhone: caching the blocks isn't enough at 6 ms. Session 2 also keeps each
-  line's kind (blank, heading, fence, holds a verse link) and re-reads only the lines an edit
-  touched. Putting runs together from the stored kinds is a cheap loop, and the regex and
-  `parseBibleLink` only run on changed lines. Target: under 2 ms on the iPhone at 10,000 lines
+  editor's text instead of copying them into an array
+- Timing, your call after the iPhone: **not worth more work.** 6 ms is added to each keystroke only
+  in a 10,000-line note, which is still inside one screen refresh (16 ms), and real journal notes
+  are a small fraction of that. Session 2 keeps the simple whole-note rule, caches it across caret
+  moves, and keeps a timing test as a guard against it getting much slower. No per-line cache, and
+  no viewport-only mode
 - Drawing: inset `box-shadow`
 - Rules 5 and 5a, decided with you after the iPhone: math, callouts and embed-only lines end a
   block; nothing is boxed inside embeds; parent links in verse notes don't open a block. The
