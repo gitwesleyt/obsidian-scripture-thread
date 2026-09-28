@@ -291,13 +291,13 @@ and no note text is written.
       override one. The 320 ms is the one fixed value, because it's behaviour, not style
 
 ## 0. Brief and spec
-- [ ] CLAUDE.md: add "Feature 3: Verse blocks" with the rules above, and take the grey border and
+- [x] CLAUDE.md: add "Feature 3: Verse blocks" with the rules above, and take the grey border and
       double-Enter off the out-of-scope list. Reword "No live/on-keystroke scanning" so the
       border can read the note's lines for links on each edit, while conversion stays manual.
       The live conversion mode stays out of scope until it has its own plan `SPEC`
-- [ ] CLAUDE.md coding conventions: style with Obsidian's theme variables only, never copied web
+- [x] CLAUDE.md coding conventions: style with Obsidian's theme variables only, never copied web
       app CSS or fixed colours `SPEC`
-- [ ] `spec/verse-blocks.md`: the rules and a table of examples. Verse Graph copies it along with
+- [x] `spec/verse-blocks.md`: the rules and a table of examples. Verse Graph copies it along with
       the rule file `SPEC`
 
 **Done when:** the brief no longer contradicts this plan.

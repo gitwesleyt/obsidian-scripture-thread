@@ -93,15 +93,41 @@ Detect plain-text Bible references (e.g. `Psalm 23:3`) and convert them to wikil
 rewrites them to the alias wikilink form, creates missing parent-chain notes, and — for the
 vault-wide command only — shows a confirmation prompt and progress indicator first.
 
+### Feature 3: Verse blocks
+A grey rounded border around a **verse block**: the paragraph holding a Bible reference and the
+lines typed under it. Enter grows the border to the new line at once; Enter again closes it back
+over the paragraph above, with a short closing animation. Behaviour follows the Bible Journal web
+app's item 4.1; nothing is shared with it, and import/export with the app is not a goal. Drawn in
+Live Preview, Source mode and Reading view, on Mac, iPhone and iPad. Full rules:
+`spec/verse-blocks.md`; build plan: `PLAN.md`, "Verse blocks".
+
+- **A verse block is a run of non-blank lines holding a verse or chapter link** — the links
+  `parseBibleLink` accepts, the same ones the context panel responds to. Book and testament links,
+  embeds and plain-text references don't open a block. The whole run is boxed, including lines
+  above the link.
+- **A blank line closes it.** That's the whole of "closed": nothing is stored and no note text is
+  written. Double-Enter is Obsidian's own "new paragraph", so the plugin never takes the Enter key.
+- **The empty line holding the caret, directly under a block, is drawn inside it** (the first
+  Enter). When the caret leaves that line and it's still empty, the block closes with the
+  animation (the second Enter, an arrow key or a tap).
+- **Never boxed:** frontmatter, fenced code and headings; a heading also ends a run.
+- **Closing animation:** the border colour settles from `--text-muted` to its resting colour over
+  320ms `ease-out`, on every line of the block at once; `prefers-reduced-motion` removes it.
+- **Setting: Verse blocks**, in General, on by default; off removes the border in all three modes.
+- The grouping rule lives in `src/verse-block-rules.ts` — pure, no imports, tested — so Verse
+  Graph can copy it the way it copies `verse-rules.ts`.
+
+**Done when:** a verse link in a paragraph draws the border in Live Preview, Source mode and
+Reading view; Enter grows it at once and Enter again closes it with the animation, leaving the
+next paragraph outside; all of it on Mac and on iOS with both keyboards.
+
 ## Explicitly out of scope — do not build these
 
 - Populating verse notes with real scripture text (depends on a translation source, not decided)
 - Any traVERture/conVERsum forking or merging
 - Removing a verse from the side panel
-- Grey border around a "verse block," double-enter to expand/close a block (both explicitly
-  deferred — not buildable without a structural document model Obsidian's CodeMirror 6 doesn't
-  have)
-- A real-time/live scan mode for conversion — manual trigger only
+- A real-time/live scan mode for conversion — manual trigger only (wanted later, in its own plan;
+  verse blocks key off links, so they'll pick up whatever it converts)
 
 If a task seems to require one of these, stop and flag it rather than building it.
 
@@ -132,7 +158,8 @@ The original porting notes follow.
 `./bible-books`.
 
 **Do not port `verse-detection.ts`.** It's Tiptap/ProseMirror wiring around the real detector,
-not the detector itself, and pulls in block-grouping logic that's out of scope. It's fine to read
+not the detector itself, and pulls in the web app's block-grouping logic (Feature 3 has its own,
+text-based rule). It's fine to read
 for the general idea of debounce-on-pause / cache-unchanged-paragraphs, but don't copy it.
 
 ## Coding conventions
@@ -144,8 +171,13 @@ for the general idea of debounce-on-pause / cache-unchanged-paragraphs, but don'
   one file (e.g. `src/commands/index.ts`), not scattered across feature files. Keep that file as
   the one place that shows everything the plugin has wired up.
 - TypeScript strict mode and the template's existing ESLint config stay as-is — don't reconfigure.
-- No live/on-keystroke scanning anywhere in this plugin — everything is manually triggered, by
-  design (see "Explicitly out of scope").
+- No live/on-keystroke *reference detection* — conversion is manually triggered, by design (see
+  "Explicitly out of scope"). The one exception is the verse block border, which re-reads the
+  note's lines for `[[links]]` on each edit (cheap: a line without `[[` is skipped) and never runs
+  the detector on plain text.
+- Style with **Obsidian's theme variables only** (`--background-modifier-border`, `--text-muted`,
+  `--radius-m`, `--size-4-*`, …) — never values copied from the web app's CSS, never fixed
+  colours — so changing the theme restyles the plugin. Plugin variables may only alias theme ones.
 
 ## Coexistence constraints (other installed plugins)
 
