@@ -3,6 +3,7 @@ import { TFolder } from 'obsidian';
 import { verseBlockDecorations } from '../blocks/verse-block-decorations';
 import { markVerseBlocks } from '../blocks/verse-block-reading';
 import { cursorTracker } from '../context/cursor-tracker';
+import { liveConversion } from '../live/live-conversion';
 import { ScriptureThreadSettingTab, type SettingsHost } from '../settings';
 import { VERSE_CONTEXT_VIEW, VerseContextView } from '../ui/verse-context-view';
 import { openVerseContext, showVerseContext } from './context-actions';
@@ -18,7 +19,20 @@ export function registerAll(plugin: SettingsHost): void {
 	plugin.addSettingTab(new ScriptureThreadSettingTab(plugin.app, plugin));
 	registerVerseContext(plugin);
 	registerConversion(plugin);
+	registerLiveConversion(plugin);
 	registerVerseBlocks(plugin);
+}
+
+function registerLiveConversion(plugin: SettingsHost): void {
+	const editorExtensions: Extension[] = [];
+	plugin.registerEditorExtension(editorExtensions);
+
+	plugin.applyLiveConversion = () => {
+		editorExtensions.length = 0;
+		if (plugin.settings.liveConversion) editorExtensions.push(liveConversion(plugin));
+		plugin.app.workspace.updateOptions();
+	};
+	plugin.applyLiveConversion();
 }
 
 function registerVerseBlocks(plugin: SettingsHost): void {

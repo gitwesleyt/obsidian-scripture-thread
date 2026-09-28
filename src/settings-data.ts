@@ -15,8 +15,10 @@ export interface ScriptureThreadSettings {
 	conversionFolderLocation: ConversionFolderLocation;
 	/** Used only when `conversionFolderLocation` is 'folder'. */
 	conversionFolder: string;
-	/** Skipped by the whole-vault command only. */
+	/** Skipped by the whole-vault command and by live conversion. */
 	excludedFolders: string[];
+	/** Convert references as they are typed, once the caret leaves their line. */
+	liveConversion: boolean;
 	/** Draw a border round each verse block. */
 	verseBlocks: boolean;
 }
@@ -32,6 +34,7 @@ export const DEFAULT_SETTINGS: ScriptureThreadSettings = {
 	conversionFolderLocation: 'current',
 	conversionFolder: '',
 	excludedFolders: [],
+	liveConversion: false,
 	verseBlocks: true,
 };
 

@@ -7,6 +7,11 @@ follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- **Convert as you type** setting, off by default: a reference you type or paste becomes a link
+  when you leave its line, and its notes are created. Undo turns it back into plain text, which
+  then stays plain. Uses the skipped-text settings and the whole-vault excluded folders.
+
 ## [1.2.0] - 2026-09-28
 
 ### Added

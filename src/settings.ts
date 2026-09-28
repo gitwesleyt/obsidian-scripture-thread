@@ -40,6 +40,8 @@ export interface SettingsHost extends Plugin {
 	saveSettings(): Promise<void>;
 	/** Turns the verse block border on or off everywhere, to match the setting. */
 	applyVerseBlocks(): void;
+	/** Turns live conversion on or off in every editor, to match the setting. */
+	applyLiveConversion(): void;
 }
 
 type FolderKey = 'notesFolder' | 'conversionFolder';
@@ -121,6 +123,21 @@ export class ScriptureThreadSettingTab extends PluginSettingTab {
 					toggle.setValue(settings.standardizeReferences).onChange(async (value) => {
 						settings.standardizeReferences = value;
 						await this.host.saveSettings();
+					}),
+				);
+		});
+
+		group.addSetting((setting) => {
+			setting
+				.setName('Convert as you type')
+				.setDesc(
+					'Turn a reference you type into a link when you leave its line, and create its notes. Undo turns it back into plain text. Uses the skipped-text settings below, and does nothing in the whole-vault excluded folders.',
+				)
+				.addToggle((toggle) =>
+					toggle.setValue(settings.liveConversion).onChange(async (value) => {
+						settings.liveConversion = value;
+						await this.host.saveSettings();
+						this.host.applyLiveConversion();
 					}),
 				);
 		});
@@ -268,7 +285,7 @@ export class ScriptureThreadSettingTab extends PluginSettingTab {
 			setting
 				.setName('Excluded folders')
 				.setDesc(
-					'Skipped by the "convert references in whole vault" command, which always asks for confirmation first. One folder per line.',
+					'Skipped by the "convert references in whole vault" command, which always asks for confirmation first, and by convert as you type. One folder per line.',
 				)
 				.addTextArea((textArea) => {
 					// Unwrapped, so a long folder path never looks like two entries.

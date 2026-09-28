@@ -1,5 +1,5 @@
 import { stripHiddenCharacters } from '../hidden-characters';
-import { findVerseReferences } from '../verse-rules';
+import { findVerseReferences, type VerseMatch } from '../verse-rules';
 import { targetsFor } from './note-names';
 import {
 	DEFAULT_IGNORE_RULES,
@@ -7,6 +7,7 @@ import {
 	overlapsAny,
 	skippedRegions,
 	type IgnoreRules,
+	type Range,
 } from './protected-ranges';
 import { standardizeLinks } from './standardize';
 
@@ -41,18 +42,32 @@ export type Conversion = {
  * one inside a reference hides it (`hidden-characters.ts`). The edits are mapped
  * back onto the original text, so only the references themselves change -- an
  * invisible character anywhere else stays where it was.
+ *
+ * `within`, in offsets of the original text, limits the edits to references and
+ * links that overlap it -- the text just typed, for live conversion. Only the
+ * lines it touches are searched, since the detector is by far the slowest part,
+ * but skipped regions come from the whole note: a code fence or callout needs
+ * its other lines.
  */
-export function convertText(text: string, options: ConversionOptions = DEFAULT_CONVERSION_OPTIONS): Conversion {
+export function convertText(
+	text: string,
+	options: ConversionOptions = DEFAULT_CONVERSION_OPTIONS,
+	within?: readonly Range[],
+): Conversion {
 	const cleaned = stripHiddenCharacters(text);
 	const toOriginal = offsetMap(text, cleaned);
 	const protectedRanges = findProtectedRanges(cleaned, options.ignore);
+	const isWanted = (from: number, to: number) =>
+		!within || overlapsAny(within, toOriginal(from), toOriginal(to - 1) + 1);
 
 	const conversion: Conversion = { edits: [], chains: [], standardized: 0 };
 	let convertedUpTo = 0;
 
-	for (const match of findVerseReferences(cleaned)) {
+	for (const match of referencesIn(cleaned, within && linesTouched(cleaned, within, toOriginal))) {
 		if (match.start < convertedUpTo) continue;
 		if (overlapsAny(protectedRanges, match.start, match.end)) continue;
+		if (!isWanted(match.start, match.end)) continue;
+		if (within && insideUnfinishedLink(cleaned, match.start)) continue;
 
 		for (const target of targetsFor(match)) {
 			const alias = options.standardizeReferences ? target.standard : target.alias;
@@ -68,7 +83,9 @@ export function convertText(text: string, options: ConversionOptions = DEFAULT_C
 	}
 
 	if (options.standardizeReferences) {
-		const linkEdits = standardizeLinks(cleaned, skippedRegions(cleaned, options.ignore));
+		const linkEdits = standardizeLinks(cleaned, skippedRegions(cleaned, options.ignore)).filter((edit) =>
+			isWanted(edit.from, edit.to),
+		);
 		for (const edit of linkEdits) {
 			conversion.edits.push({ ...edit, from: toOriginal(edit.from), to: toOriginal(edit.to - 1) + 1 });
 		}
@@ -78,6 +95,47 @@ export function convertText(text: string, options: ConversionOptions = DEFAULT_C
 	}
 
 	return conversion;
+}
+
+function referencesIn(text: string, lines: readonly Range[] | undefined): VerseMatch[] {
+	if (!lines) return findVerseReferences(text);
+
+	return lines.flatMap(({ from, to }) =>
+		findVerseReferences(text.slice(from, to)).map((match) => ({
+			...match,
+			start: match.start + from,
+			end: match.end + from,
+		})),
+	);
+}
+
+/** The lines of `cleaned` that `within`, in offsets of the original text, overlaps. */
+function linesTouched(
+	cleaned: string,
+	within: readonly Range[],
+	toOriginal: (offset: number) => number,
+): Range[] {
+	const lines: Range[] = [];
+	let from = 0;
+
+	while (from <= cleaned.length) {
+		const lineBreak = cleaned.indexOf('\n', from);
+		const to = lineBreak === -1 ? cleaned.length : lineBreak;
+		if (overlapsAny(within, toOriginal(from), toOriginal(to) + 1)) lines.push({ from, to });
+		from = to + 1;
+	}
+	return lines;
+}
+
+/**
+ * After a `[[` or `{` not yet closed on its line: a link or a Bible Verse block
+ * still being typed, which a live conversion would split in two.
+ */
+function insideUnfinishedLink(text: string, offset: number): boolean {
+	const before = text.slice(text.lastIndexOf('\n', offset - 1) + 1, offset);
+	return (
+		before.lastIndexOf('[[') > before.lastIndexOf(']]') || before.lastIndexOf('{') > before.lastIndexOf('}')
+	);
 }
 
 export function applyEdits(text: string, edits: readonly TextEdit[]): string {
