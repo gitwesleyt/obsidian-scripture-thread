@@ -7,6 +7,8 @@ follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-09-29
+
 ### Added
 - **Convert as you type** setting, off by default: a reference you type or paste becomes a link
   when you leave its line, and its notes are created. Undo turns it back into plain text, which

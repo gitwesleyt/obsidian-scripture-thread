@@ -537,7 +537,7 @@ skipped regions still come from the whole note (~3 ms): **3.6 ms** in all. The t
 
 ## 4. Docs and release
 - [x] README (Convert as you type, Settings, limits), CHANGELOG `SPEC`
-- [ ] Beta `1.3.0-beta.1` through BRAT, then release `1.3.0` `SPEC`
+- [x] Beta `1.3.0-beta.1` through BRAT, then release `1.3.0` (2026-09-29) `SPEC`
 
 ## Verification
 - [x] `npm run check`: build, lint 0 errors (the 10 known warnings), all tests green
