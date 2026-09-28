@@ -34,8 +34,9 @@ panel listing every other note that references that same verse — and for each 
 referencing that verse, with the containing paragraph's actual text visible per note.
 
 ### Feature 2: Manual reference-to-wikilink conversion
-Detect plain-text Bible references (e.g. `Psalm 23:3`) and convert them to wikilinks on demand
-(not live-as-you-type), auto-creating the linked note and its parent chain.
+Detect plain-text Bible references (e.g. `Psalm 23:3`) and convert them to wikilinks, on demand
+through three commands or as you type (a setting), auto-creating the linked note and its parent
+chain.
 
 - `Psalm 23:3` → `[[Psalms 23 3|Psalm 23:3]]` — **use the alias form**, not a bare `[[Psalms 23 3]]`.
   The alias is the text **exactly as typed**, so the colon stays visible in rendered text for
@@ -74,6 +75,18 @@ Detect plain-text Bible references (e.g. `Psalm 23:3`) and convert them to wikil
   start runs to the end of the note).
   **Existing wikilinks/embeds and markdown links are always skipped** — not switchable — so
   re-running is safe. Applies to all three commands.
+- **Setting: convert as you type** (off by default). The references typed or pasted on a line
+  are converted when the caret leaves it (Enter, an arrow key, a tap, or the editor losing focus),
+  so nothing moves under the caret mid-sentence and the first Enter opens the verse block.
+  - Only **typed or pasted** text (CM6 `input` transactions). Undo, redo, sync and other plugins'
+    edits never are, and nor is an old plain reference elsewhere in the note.
+  - The conversion is **its own undo step**. Undo turns the link back into the plain text, and
+    it stays plain until that text is edited again. Notes it created stay.
+  - The same rules as the commands: Skipped text, alias form, Standardize (only the links typed
+    on the line), semicolons, hidden characters, and its parent chain created at once. A reference
+    after an unclosed `[[` or `{` on its line is left alone: a link still being typed.
+  - Skips the whole-vault **excluded folders**. No Notice.
+  - The detector runs on the typed lines only; skipped regions come from the whole note.
 - Conversion produces the linked note **structure only** — do not populate new verse notes with
   actual scripture text. That's out of scope (see below).
 - **Setting: location for new notes.** Mirrors Obsidian's own "Default location for new notes":
@@ -85,9 +98,9 @@ Detect plain-text Bible references (e.g. `Psalm 23:3`) and convert them to wikil
   `New Testament/` subfolders of the chosen location. Testament notes themselves sit at the
   location's root.
 - **Setting: excluded folders.** A configurable list of folders the vault-wide scan should skip
-  entirely (e.g. templates, archives). Applies to the vault-scope command specifically — the
-  single-document and folder-scope commands are already an explicit, deliberate choice of what to
-  scan, so exclusions don't apply there.
+  entirely (e.g. templates, archives). Applies to the vault-scope command and to convert as you
+  type — the single-document and folder-scope commands are already an explicit, deliberate choice
+  of what to scan, so exclusions don't apply there.
 
 **Done when:** running any of the three commands finds plain-text Bible references in its scope,
 rewrites them to the alias wikilink form, creates missing parent-chain notes, and — for the
@@ -129,8 +142,6 @@ next paragraph outside; all of it on Mac and on iOS with both keyboards.
 - Populating verse notes with real scripture text (depends on a translation source, not decided)
 - Any traVERture/conVERsum forking or merging
 - Removing a verse from the side panel
-- A real-time/live scan mode for conversion — manual trigger only (wanted later, in its own plan;
-  verse blocks key off links, so they'll pick up whatever it converts)
 
 If a task seems to require one of these, stop and flag it rather than building it.
 
@@ -174,10 +185,10 @@ for the general idea of debounce-on-pause / cache-unchanged-paragraphs, but don'
   one file (e.g. `src/commands/index.ts`), not scattered across feature files. Keep that file as
   the one place that shows everything the plugin has wired up.
 - TypeScript strict mode and the template's existing ESLint config stay as-is — don't reconfigure.
-- No live/on-keystroke *reference detection* — conversion is manually triggered, by design (see
-  "Explicitly out of scope"). The one exception is the verse block border, which re-reads the
-  note's lines for `[[links]]` on each edit (cheap: a line without `[[` is skipped) and never runs
-  the detector on plain text.
+- No on-keystroke *reference detection*. The detector runs from a command, or, with convert as
+  you type on, once per line the caret leaves, on the typed lines only — never on every
+  keystroke and never over the whole note. The verse block border re-reads the note's lines for
+  `[[links]]` on each edit (cheap: a line without `[[` is skipped) and never runs the detector.
 - Style with **Obsidian's theme variables only** (`--background-modifier-border`, `--text-muted`,
   `--radius-m`, `--size-4-*`, …) — never values copied from the web app's CSS, never fixed
   colours — so changing the theme restyles the plugin. Plugin variables may only alias theme ones.
@@ -189,6 +200,7 @@ for the general idea of debounce-on-pause / cache-unchanged-paragraphs, but don'
 - **Bible Reference**: only triggers on its own `--John1:1` syntax — but the detector does match
   the `John1:1` part, so conversion skips that syntax by default (a switch in Skipped text).
 - **Bible Sidecar**: passive read-only panel — no overlap risk.
-- **conVERsum / traVERture**: both do live, passive decoration of plain-text references. Manual
-  (not live) conversion here avoids adding to that continuous-rescan load, and once a reference
-  is converted to a wikilink it stops matching their plain-text pattern entirely.
+- **conVERsum / traVERture**: both do live, passive decoration of plain-text references.
+  Converting once per line left (or by command), not per keystroke, avoids adding to that
+  continuous-rescan load, and once a reference is converted to a wikilink it stops matching their
+  plain-text pattern entirely.
