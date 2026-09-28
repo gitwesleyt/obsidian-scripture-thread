@@ -7,6 +7,8 @@ follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-09-28
+
 ### Added
 - **Verse blocks**: a grey rounded border round a paragraph that links to a verse or chapter, in
   Live Preview, Source mode and Reading view. Enter grows it to the new line; Enter again closes

@@ -438,7 +438,7 @@ lists behave as the spike recorded. `DW3`
       `workspace.updateOptions()`, and Reading view on its next render `SPEC`
 - [x] README: a "Verse blocks" section and its limits (Live Preview widgets, Strict line breaks);
       CHANGELOG `SPEC`
-- [ ] Release `1.2.0` `SPEC`
+- [x] Release `1.2.0` (2026-09-28) `SPEC`
 
 Built: the post-processor waits a frame so the section is on the page before asking
 `getSectionInfo`, and skips anything inside `.markdown-embed` or `.hover-popover`. Sections get
