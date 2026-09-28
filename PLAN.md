@@ -218,3 +218,187 @@ the "Reformat-references / citation-style feature" and the "Ignore-pattern confi
 - [x] `npm run check`: build, lint 0 errors (the 10 known warnings), 203/203 tests
 - [x] Manual, in the test vault: `Standardize.md` and `Skipped text.md` in the UAT kit
 - [x] Release 1.1.0: `npm version minor`, `git push --follow-tags`, `npm run release`
+
+---
+
+# Verse blocks
+
+Brings two items that CLAUDE.md lists as out of scope into scope, at your request: the grey border
+round a verse block, and double-Enter to close it. The brief called them "not buildable without a
+structural document model". They are, once "closed" is a blank line, because a markdown paragraph
+already is the model. Behaviour follows the web app's item 4.1
+(`bible-journal-app/v3/design/4.1-verse-block-enter/README.md`), read for behaviour only; no code
+is shared, and import/export with the app isn't a goal. Mac, iPhone and iPad.
+
+- `DW1` the box appears round a verse block in Live Preview, Source mode and Reading view
+- `DW2` Enter grows it to the new line at once; Enter again closes it over the paragraph above,
+  with the closing animation, and the next paragraph sits outside it
+- `DW3` both work on the Mac and on iOS, with the on-screen keyboard and a hardware keyboard
+- `SPEC` other constraints: the brief, `spec/`, the single registration point, Obsidian's theme,
+  docs
+
+## The rules
+These also go in `spec/verse-blocks.md`.
+
+1. **A verse block is a run of non-blank lines that holds a verse or chapter link.** These are
+   the links the context panel responds to (`parseBibleLink`): `[[Psalms 23 3]]`,
+   `[[John 3 16-18]]` and `[[Psalms 23]]` count, while `[[Psalms]]`, `[[Old Testament]]` and plain
+   text don't. The whole run is boxed, including lines above the link, because Reading view
+   draws a paragraph as one element and half of one can't be boxed.
+2. **A blank line ends it.** A line of only spaces counts as blank.
+3. **The empty line holding the caret, directly under a block, is drawn inside it.** This is the
+   first Enter: the box grows as soon as the line exists, in the same update, with nothing typed.
+   It isn't stored anywhere; it follows from where the caret is.
+4. **When the caret leaves that line and the line is still empty, the block closes.** This is the
+   second Enter, or an arrow key or a tap. The box shuts back over the paragraph above with the
+   closing animation. Typing on the line instead joins it to the paragraph, so it stays in. Enter
+   from the new line after that is an ordinary new paragraph, outside the box.
+5. **Never boxed:** frontmatter, fenced code, and heading lines. A heading also ends a run.
+   Embeds (`![[…]]`) don't open a block.
+6. **Drawn in Obsidian's theme:** a 1px `--background-modifier-border` line down both sides of
+   every line, with the top edge and rounded (`--radius-m`) corners on the first line and the
+   bottom edge and rounded corners on the last. The lines of text don't move when a box opens or
+   closes.
+7. **Closing animation:** the border goes from `--text-muted` to its resting colour over 320 ms,
+   `ease-out`, on every line of the block at once. `prefers-reduced-motion` turns it off. Nothing
+   waits for it to finish.
+
+**What this costs:** the lines in a block are joined by line breaks, not paragraph gaps, and with
+**Strict line breaks** on, Reading view runs them together into one paragraph. Nothing is stored,
+and no note text is written.
+
+## Decisions
+- [x] **"Closed" is a blank line.** A block is one run of non-blank lines, and double-Enter is
+      already Obsidian's way to start a new paragraph. No syntax is added and Enter isn't taken
+      over, which removes the risk around iOS keyboards. The other options were two blank lines
+      (a visible gap in the editor) and a hidden `%%…%%` marker (raw text in Source mode)
+- [x] **Only links open a block.** Live conversion (below) turns typed references into links,
+      and those open blocks with no change here. The rule takes its opener as a parameter, so
+      plain text could open blocks by swapping one function
+- [x] Lines above the link in the same paragraph are in the block (rule 1)
+- [x] Headings are never boxed and end a run. Revisit if notes go directly under a
+      `## [[John 3 16]]` heading
+- [x] Lists: Enter on an empty bullet only clears the bullet, so closing a block after a list
+      takes three Enters. Accepted, since it's Obsidian's own list behaviour. Session 1 measures
+      it
+- [x] A **Verse blocks** switch in **General**, on by default
+- [x] Verse Graph's note panel highlights the verse block that cites the selected verse, instead
+      of showing that block alone, so the rest of the note stays readable around it
+- [x] **Obsidian's theme only.** Every colour, radius, spacing value and timing curve comes from
+      Obsidian's CSS variables, never from the web app's `globals.css` and never hard-coded, so
+      changing the theme restyles the box. The plugin's own variables only alias the theme's
+      (`--verse-block-border: var(--background-modifier-border)`), so a CSS snippet can still
+      override one. The 320 ms is the one fixed value, because it's behaviour, not style
+
+## 0. Brief and spec
+- [ ] CLAUDE.md: add "Feature 3: Verse blocks" with the rules above, and take the grey border and
+      double-Enter off the out-of-scope list. Reword "No live/on-keystroke scanning" so the
+      border can read the note's lines for links on each edit, while conversion stays manual.
+      The live conversion mode stays out of scope until it has its own plan `SPEC`
+- [ ] CLAUDE.md coding conventions: style with Obsidian's theme variables only, never copied web
+      app CSS or fixed colours `SPEC`
+- [ ] `spec/verse-blocks.md`: the rules and a table of examples. Verse Graph copies it along with
+      the rule file `SPEC`
+
+**Done when:** the brief no longer contradicts this plan.
+
+## 1. Spike, on a throwaway branch (`spike/verse-blocks`, never merged)
+Build a hard-coded run-of-non-blank-lines rule, drawn as CodeMirror 6 line decorations, plus a
+Reading view post-processor. Test it in the test vault on one note that has a paragraph, several
+lines, a list, a checkbox list, a quote, a callout, a table, an embed, an image, math, a code block
+and a heading. Record what's found in a "Spike findings" table here. `DW1 DW2 DW3`
+- [ ] Which Live Preview widgets (table, callout, embed, image, math) break the box, and how. Pick
+      a fallback for each, or list it as a known limit
+- [ ] Obsidian's own Enter in a paragraph, list, checkbox, quote and callout: the exact text each
+      press leaves, and where the caret lands
+- [ ] iPhone and iPad, with the on-screen keyboard and a hardware keyboard: is it the same
+      transaction, and does the box grow and close with the caret in the same update? Install
+      through a BRAT beta (`1.2.0-beta.1`), as Verse Graph was tried on the phone
+- [ ] Drawing without moving text: `box-shadow` or a pseudo-element versus `border` on
+      `.cm-line`; rounded corners; the gaps between lines; readable line width
+- [ ] Reading view: does `getSectionInfo` return a range for each kind of section, in hover
+      previews and embeds too, with Strict line breaks both on and off? Do margins between a `p`
+      and a `ul` break the sides?
+- [ ] Timing: the whole-note rule on a 10,000-line note, on every change, should take under 2 ms
+      on the Mac. If it's slower, work outward from the visible lines to the nearest blank lines
+
+**Done when:** every row has an answer, you've seen the prototype box on the Mac and on your
+iPhone, and the rules above have been corrected wherever a finding contradicts them.
+
+## 2. The rule file, and the box in the editor
+- [ ] `src/verse-block-rules.ts`: pure and without imports, so Verse Graph can copy it the way it
+      copies `verse-rules.ts`. `verseBlocks(lines, opensBlock, caretLine?)` returns
+      `{ startLine, endLine }[]` (0-based, inclusive), and `lineRole(block, line)` returns one of
+      `only | start | middle | end` `DW1`
+- [ ] `src/blocks/opens-block.ts`: the opener. Export `linksIn` from
+      `src/context/links-at-cursor.ts` for it rather than copying it, and use `parseBibleLink`.
+      It skips any line without `[[` before parsing anything `DW1`
+- [ ] Tests in `verse-block-rules.test.ts`:
+      - a one-line paragraph, and several lines
+      - a link on a middle line (the lines above it are in the block)
+      - blank and space-only lines end a block; two blocks one blank line apart
+      - a list under the paragraph
+      - a heading ends a block
+      - frontmatter and code fences are never boxed; a link inside a code block doesn't open one
+      - the caret's empty line under a block is in it; one line lower isn't; a caret on a line
+        with text changes nothing
+      - an empty note
+
+      Also `opens-block.test.ts`: embeds, book links and testament links don't open a block. And
+      a timing test in the style of Verse Graph's `vault-graph.timing.test.ts` `DW1`
+- [ ] `src/blocks/verse-block-decorations.ts`: a `ViewPlugin` that rebuilds the line decorations
+      on `docChanged`, `viewportChanged` and `selectionSet`, and decorates only the visible
+      lines `DW1`
+- [ ] `styles.css`: `.scripture-thread-verse-block` with start and end modifiers, in Obsidian's
+      theme variables only. Checked in the default light and dark themes and in one community
+      theme `DW1 SPEC`
+- [ ] `src/commands/index.ts`: register the extension there, the single registration point
+      `SPEC`
+
+**Done when:** `npm run check` is green, and on the Mac a verse link in a paragraph draws the box
+in Live Preview and Source mode, and a blank line ends it.
+
+## 3. Enter: grow and close
+- [ ] Give the rule the caret's line: the main selection, only when nothing is selected, and only
+      on a blank line `DW2`
+- [ ] Closing animation: when a block loses its caret line and that line still exists and is
+      still blank, give the block's lines a `…-closing` class, and clear it after 320 ms with a
+      `StateEffect`. It fires only on that change, not on deletes, pastes or undo `DW2`
+- [ ] Reduced motion in CSS. Check that nothing flickers between the first Enter and the redraw
+      (the web app's 200 ms bug) `DW2`
+- [ ] Tests for the closing check (pure), next to the rule tests `DW2`
+
+**Done when:** on the Mac, and on the iPhone and iPad with both keyboards, Enter grows the box at
+once and a second Enter closes it with the animation. The next paragraph sits outside the box, and
+lists behave as the spike recorded. `DW3`
+
+## 4. Reading view, the setting, and release
+- [ ] `src/blocks/verse-block-reading.ts`: a `registerMarkdownPostProcessor` that runs the same
+      rule over `getSectionInfo(el).text` once per render (cached by that text) and marks each
+      section's element as start, middle or end. A section without section info gets no box,
+      which goes in the known limits `DW1`
+- [ ] The **Verse blocks** switch in `src/settings-data.ts` (with `withDefaults`) and
+      `src/settings.ts`. Switching it off clears the editor through a `Compartment` or
+      `workspace.updateOptions()`, and Reading view on its next render `SPEC`
+- [ ] README: a "Verse blocks" section and its limits (Live Preview widgets, Strict line breaks);
+      CHANGELOG; release `1.2.0` `SPEC`
+
+**Done when:** the test note shows the same boxes in Reading view on the Mac and on iOS, the switch
+turns them off in all three modes, and `1.2.0` is in your real vault through BRAT.
+
+## 5. Verse Graph (built in `../obsidian-verse-graph`)
+- [ ] Copy `verse-block-rules.ts`, its test and `spec/verse-blocks.md`, each with a header noting
+      where it came from and when. Add them to `npm run compare-app`, which already reads this
+      repo
+- [ ] `src/ui/note-panel.ts`: instead of marking the first paragraph that links to the verse,
+      find the verse block holding it, box it with the same CSS, and scroll to it as now
+- [ ] A row for this in Verse Graph's own PLAN.md
+
+**Done when:** choosing a note in the graph shows the block citing the selected verse boxed, on
+the Mac and on the phone.
+
+## Later, in its own plan: live conversion
+You want references recognised as you type, not only when a command runs. It's on CLAUDE.md's
+out-of-scope list, and gets its own plan after this one. Nothing here is in its way: the
+conversions it writes are links, and links open blocks. If a reference that hasn't been converted
+yet should open a box too, only `opensBlock` needs to change.
