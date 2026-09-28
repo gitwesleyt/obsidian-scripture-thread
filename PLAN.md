@@ -386,7 +386,7 @@ Branch `spike/verse-blocks`, prerelease `1.2.0-beta.1`. **Done 2026-09-28:** you
 - [x] `src/blocks/verse-block-decorations.ts`: a `ViewPlugin` that rebuilds the line decorations
       on `docChanged`, `viewportChanged` and `selectionSet`, and decorates only the visible
       lines `DW1`
-- [ ] `styles.css`: `.scripture-thread-verse-block` with start and end modifiers, in Obsidian's
+- [x] `styles.css`: `.scripture-thread-verse-block` with start and end modifiers, in Obsidian's
       theme variables only. Checked in the default light and dark themes and in one community
       theme `DW1 SPEC`
 - [x] `src/commands/index.ts`: register the extension there, the single registration point
@@ -399,20 +399,28 @@ note's path. `@codemirror/state` is pinned to `6.5.0`, the version `obsidian` as
 
 Tried on the Mac: the box shows in Live Preview and Source mode, math, callouts and embeds close
 neatly above, and there's no box inside the embed. The border was too faint in dark mode, so dark
-themes use the theme's next border step up (`1.2.0-beta.3`).
+themes use the theme's next border step up (`1.2.0-beta.3`). Checked again in dark and in a
+community theme: both good. **Session 2 done.**
 
 **Done when:** `npm run check` is green, and on the Mac a verse link in a paragraph draws the box
 in Live Preview and Source mode, and a blank line ends it.
 
 ## 3. Enter: grow and close
-- [ ] Give the rule the caret's line: the main selection, only when nothing is selected, and only
+- [x] Give the rule the caret's line: the main selection, only when nothing is selected, and only
       on a blank line `DW2`
-- [ ] Closing animation: when a block loses its caret line and that line still exists and is
+- [x] Closing animation: when a block loses its caret line and that line still exists and is
       still blank, give the block's lines a `…-closing` class, and clear it after 320 ms with a
       `StateEffect`. It fires only on that change, not on deletes, pastes or undo `DW2`
-- [ ] Reduced motion in CSS. Check that nothing flickers between the first Enter and the redraw
-      (the web app's 200 ms bug) `DW2`
-- [ ] Tests for the closing check (pure), next to the rule tests `DW2`
+- [x] Reduced motion in CSS `DW2`
+- [ ] Check that nothing flickers between the first Enter and the redraw (the web app's 200 ms
+      bug) `DW2`
+- [x] Tests for the closing check (pure), next to the rule tests `DW2`
+
+Built: `src/blocks/closing.ts` (`grownLine`, `closingBlock`) with 8 tests, 240 in all. The editor
+keeps the blocks between keystrokes and re-applies `growToCaret` on each caret move; the grown
+line's position follows edits (`mapPos` with `TrackDel`), so undoing the first Enter or deleting
+the line plays nothing. The border colour is a registered `@property` so the animation can fade
+it. Try it in `1.2.0-beta.4`.
 
 **Done when:** on the Mac, and on the iPhone and iPad with both keyboards, Enter grows the box at
 once and a second Enter closes it with the animation. The next paragraph sits outside the box, and
