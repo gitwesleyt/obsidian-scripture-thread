@@ -541,7 +541,7 @@ skipped regions still come from the whole note (~3 ms): **3.6 ms** in all. The t
 
 ## Verification
 - [x] `npm run check`: build, lint 0 errors (the 10 known warnings), all tests green
-- [ ] Manual, on the Mac, then iPhone and iPad with both keyboards, in the test vault `DW1 DW2 DW3`:
+- [x] Manual, on the Mac, then iPhone and iPad with both keyboards, in the test vault `DW1 DW2 DW3`:
   - `Ps 23:1`, then Enter → `[[Psalms 23 1|Ps 23:1]]`, notes created, the verse block opens on the
     new line without flicker; a second Enter closes it
   - `John 3`, pause, `:16`, arrow down → one link to `John 3 16`
@@ -551,3 +551,5 @@ skipped regions still come from the whole note (~3 ms): **3.6 ms** in all. The t
   - An old plain reference elsewhere isn't converted; an excluded folder isn't; setting off →
     nothing converts
   - Paste a paragraph of references, then move off → converted
+
+Tried in `1.3.0-beta.1` (2026-09-28): looks good.
