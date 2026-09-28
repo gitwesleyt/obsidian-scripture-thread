@@ -17,6 +17,8 @@ export interface ScriptureThreadSettings {
 	conversionFolder: string;
 	/** Skipped by the whole-vault command only. */
 	excludedFolders: string[];
+	/** Draw a border round each verse block. */
+	verseBlocks: boolean;
 }
 
 export type ConversionFolderLocation = 'current' | 'folder';
@@ -30,6 +32,7 @@ export const DEFAULT_SETTINGS: ScriptureThreadSettings = {
 	conversionFolderLocation: 'current',
 	conversionFolder: '',
 	excludedFolders: [],
+	verseBlocks: true,
 };
 
 /**

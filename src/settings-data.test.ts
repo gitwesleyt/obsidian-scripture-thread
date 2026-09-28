@@ -15,6 +15,7 @@ describe('loading saved settings', () => {
 			excludedFolders: ['Templates'],
 			standardizeReferences: false,
 			ignore: DEFAULT_IGNORE_RULES,
+			verseBlocks: true,
 		});
 	});
 

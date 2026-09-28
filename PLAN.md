@@ -412,7 +412,7 @@ in Live Preview and Source mode, and a blank line ends it.
       still blank, give the block's lines a `…-closing` class, and clear it after 320 ms with a
       `StateEffect`. It fires only on that change, not on deletes, pastes or undo `DW2`
 - [x] Reduced motion in CSS `DW2`
-- [ ] Check that nothing flickers between the first Enter and the redraw (the web app's 200 ms
+- [x] Check that nothing flickers between the first Enter and the redraw (the web app's 200 ms
       bug) `DW2`
 - [x] Tests for the closing check (pure), next to the rule tests `DW2`
 
@@ -422,20 +422,30 @@ line's position follows edits (`mapPos` with `TrackDel`), so undoing the first E
 the line plays nothing. The border colour is a registered `@property` so the animation can fade
 it. Try it in `1.2.0-beta.4`.
 
+Tried in `1.2.0-beta.4` (2026-09-28): everything looked as expected. **Session 3 done.**
+
 **Done when:** on the Mac, and on the iPhone and iPad with both keyboards, Enter grows the box at
 once and a second Enter closes it with the animation. The next paragraph sits outside the box, and
 lists behave as the spike recorded. `DW3`
 
 ## 4. Reading view, the setting, and release
-- [ ] `src/blocks/verse-block-reading.ts`: a `registerMarkdownPostProcessor` that runs the same
+- [x] `src/blocks/verse-block-reading.ts`: a `registerMarkdownPostProcessor` that runs the same
       rule over `getSectionInfo(el).text` once per render (cached by that text) and marks each
       section's element as start, middle or end. A section without section info gets no box,
       which goes in the known limits `DW1`
-- [ ] The **Verse blocks** switch in `src/settings-data.ts` (with `withDefaults`) and
+- [x] The **Verse blocks** switch in `src/settings-data.ts` (with `withDefaults`) and
       `src/settings.ts`. Switching it off clears the editor through a `Compartment` or
       `workspace.updateOptions()`, and Reading view on its next render `SPEC`
-- [ ] README: a "Verse blocks" section and its limits (Live Preview widgets, Strict line breaks);
-      CHANGELOG; release `1.2.0` `SPEC`
+- [x] README: a "Verse blocks" section and its limits (Live Preview widgets, Strict line breaks);
+      CHANGELOG `SPEC`
+- [ ] Release `1.2.0` `SPEC`
+
+Built: the post-processor waits a frame so the section is on the page before asking
+`getSectionInfo`, and skips anything inside `.markdown-embed` or `.hover-popover`. Sections get
+`display: flow-root`, so a paragraph's margins stay inside the box and the sides run unbroken
+into the next section. The switch empties the array given to `registerEditorExtension`, calls
+`workspace.updateOptions()` and re-renders every open Reading view. Try it in `1.2.0-beta.5`.
+
 
 **Done when:** the test note shows the same boxes in Reading view on the Mac and on iOS, the switch
 turns them off in all three modes, and `1.2.0` is in your real vault through BRAT.

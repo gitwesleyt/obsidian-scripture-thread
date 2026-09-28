@@ -1,5 +1,7 @@
-import { TFolder } from 'obsidian';
+import type { Extension } from '@codemirror/state';
+import { MarkdownView, TFolder } from 'obsidian';
 import { verseBlockDecorations } from '../blocks/verse-block-decorations';
+import { markVerseBlocks } from '../blocks/verse-block-reading';
 import { cursorTracker } from '../context/cursor-tracker';
 import { ScriptureThreadSettingTab, type SettingsHost } from '../settings';
 import { VERSE_CONTEXT_VIEW, VerseContextView } from '../ui/verse-context-view';
@@ -20,7 +22,25 @@ export function registerAll(plugin: SettingsHost): void {
 }
 
 function registerVerseBlocks(plugin: SettingsHost): void {
-	plugin.registerEditorExtension(verseBlockDecorations);
+	const editorExtensions: Extension[] = [];
+	plugin.registerEditorExtension(editorExtensions);
+	plugin.registerMarkdownPostProcessor((el, context) => {
+		if (plugin.settings.verseBlocks) markVerseBlocks(el, context);
+	});
+
+	plugin.applyVerseBlocks = () => {
+		editorExtensions.length = 0;
+		if (plugin.settings.verseBlocks) editorExtensions.push(verseBlockDecorations);
+		plugin.app.workspace.updateOptions();
+		rerenderReadingViews(plugin);
+	};
+	plugin.applyVerseBlocks();
+}
+
+function rerenderReadingViews(plugin: SettingsHost): void {
+	for (const leaf of plugin.app.workspace.getLeavesOfType('markdown')) {
+		if (leaf.view instanceof MarkdownView) leaf.view.previewMode.rerender(true);
+	}
 }
 
 function registerVerseContext(plugin: SettingsHost): void {

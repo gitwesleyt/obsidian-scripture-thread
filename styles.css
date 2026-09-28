@@ -170,3 +170,11 @@ h4.scripture-thread-heading {
 		animation: none;
 	}
 }
+
+/*
+ * In Reading view each section is its own element; flow-root keeps its paragraph's
+ * margins inside the box, so the sides run on unbroken from one section to the next.
+ */
+.markdown-rendered .scripture-thread-verse-block {
+	display: flow-root;
+}
