@@ -203,6 +203,8 @@ a command twice is safe), Markdown links, and web addresses.
 
 ## Settings
 
+On Obsidian 1.13 and later, every setting below shows up in the settings search.
+
 **General**
 - **Default location for new notes** — where created notes go: *Vault folder*, *Same folder as
   current file* (the note being converted), or *In the folder specified below* (default:

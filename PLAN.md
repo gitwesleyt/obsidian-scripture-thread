@@ -569,7 +569,18 @@ Tried in `1.3.0-beta.1` (2026-09-28): looks good.
       by teardown Obsidian may already point the editor at the next note. 3 tests with an
       in-memory vault
 - [ ] Try it in a beta: switch notes, close the tab, quit Obsidian, and a note open in two panes
-- [ ] **Settings search: parked.** Obsidian 1.13's `getSettingDefinitions()` would need
-      `minAppVersion` 1.13.0, and you want older versions supported for a public release. A
-      workaround is open for your decision
+- [x] **Settings search, keeping `minAppVersion` 1.11.0.** `obsidian.d.ts` 1.13 says `display()`
+      isn't called when `getSettingDefinitions()` returns items, and to keep it "as a fallback for
+      plugins that need to support Obsidian versions older than 1.13.0". So:
+      - `src/settings-definitions.ts`: the definitions (dropdowns, 1.13's own folder picker,
+        toggles, a list for marker pairs, a textarea), plus `readSetting` / `writeSetting` for
+        keys like `ignore.callouts`. 7 tests
+      - `src/settings-text.ts`: every heading, name and description, shared with the fallback
+      - `src/settings.ts`: `getSettingDefinitions`, `getControlValue`, `setControlValue`; the old
+        `display()` is untouched apart from taking its text from `settings-text.ts`.
+        `update()` and `refreshDomState()` sit behind `requireApiVersion('1.13.0')`
+      - `obsidian` pinned to `1.13.1` (it was `latest`, locked at 1.12.3) for the new types
+- [ ] Try settings in a beta on Obsidian 1.13 (search finds them; folder pickers show and hide;
+      marker pairs add, edit, remove; each toggle takes effect) and, if possible, on 1.12 (the old
+      tab)
 

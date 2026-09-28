@@ -7,6 +7,10 @@ follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- Settings show up in Obsidian's settings search, on Obsidian 1.13 and later. Older versions keep
+  the same settings tab as before.
+
 ### Changed
 - **Convert as you type** also converts the line you were on when you switch to another note or
   close it. That conversion is written to the saved note, so it can't be undone in the editor, and
