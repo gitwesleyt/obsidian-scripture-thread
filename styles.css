@@ -118,6 +118,11 @@ h4.scripture-thread-heading {
 	box-shadow: var(--scripture-thread-verse-block-sides);
 }
 
+/* The theme's plain border colour is too faint on a dark background, so dark themes take its next step up. */
+.theme-dark .scripture-thread-verse-block {
+	--scripture-thread-verse-block-colour: var(--background-modifier-border-hover);
+}
+
 .scripture-thread-verse-block-start {
 	border-start-start-radius: var(--scripture-thread-verse-block-radius);
 	border-start-end-radius: var(--scripture-thread-verse-block-radius);

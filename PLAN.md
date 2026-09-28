@@ -260,7 +260,8 @@ These also go in `spec/verse-blocks.md`.
 5a. **No boxes inside an embed or a hover preview**, and the parent link that the converter
    writes into a verse note (`[[John 3]]` in `John 3 16.md`) doesn't open a block. It's the
    same `isParentLink` rule the context panel uses (spike finding).
-6. **Drawn in Obsidian's theme:** a 1px `--background-modifier-border` line down both sides of
+6. **Drawn in Obsidian's theme:** a 1px `--background-modifier-border` line (in dark themes,
+   `--background-modifier-border-hover`, since the plain one was too faint there) down both sides of
    every line, with the top edge and rounded (`--radius-m`) corners on the first line and the
    bottom edge and rounded corners on the last. The lines of text don't move when a box opens or
    closes.
@@ -395,6 +396,10 @@ Built: 29 new tests (232 in all). The rules follow the spike: math, callouts and
 end a block, and `isParentLink` is exported from `find-mentions.ts` for the opener, which takes the
 note's path. `@codemirror/state` is pinned to `6.5.0`, the version `obsidian` asks for. Try it in
 `1.2.0-beta.2`.
+
+Tried on the Mac: the box shows in Live Preview and Source mode, math, callouts and embeds close
+neatly above, and there's no box inside the embed. The border was too faint in dark mode, so dark
+themes use the theme's next border step up (`1.2.0-beta.3`).
 
 **Done when:** `npm run check` is green, and on the Mac a verse link in a paragraph draws the box
 in Live Preview and Source mode, and a blank line ends it.
