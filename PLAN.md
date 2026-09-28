@@ -450,7 +450,8 @@ Tried in `beta.5`: Reading view matched, but switching off left the boxes in Rea
 Obsidian keeps the sections it has already drawn and re-rendering didn't redraw them. Fixed in
 `1.2.0-beta.6`: Reading view always marks its sections, and the switch puts a class on the body
 of every window (`scripture-thread-verse-blocks-on`) that the CSS needs before it draws anything.
-The editor still drops its extension when off, so it does no work.
+The editor still drops its extension when off, so it does no work. Tried in `beta.6`: off and back on
+both work in Reading view.
 
 
 **Done when:** the test note shows the same boxes in Reading view on the Mac and on iOS, the switch
