@@ -458,12 +458,18 @@ both work in Reading view.
 turns them off in all three modes, and `1.2.0` is in your real vault through BRAT.
 
 ## 5. Verse Graph (built in `../obsidian-verse-graph`)
-- [ ] Copy `verse-block-rules.ts`, its test and `spec/verse-blocks.md`, each with a header noting
+- [x] Copy `verse-block-rules.ts`, its test and `spec/verse-blocks.md`, each with a header noting
       where it came from and when. Add them to `npm run compare-app`, which already reads this
       repo
-- [ ] `src/ui/note-panel.ts`: instead of marking the first paragraph that links to the verse,
+- [x] `src/ui/note-panel.ts`: instead of marking the first paragraph that links to the verse,
       find the verse block holding it, box it with the same CSS, and scroll to it as now
-- [ ] A row for this in Verse Graph's own PLAN.md
+- [x] A row for this in Verse Graph's own PLAN.md
+
+Built on Verse Graph's `feature/verse-blocks` branch: the panel renders the note in three parts
+round the block (`citing-block.ts`, 6 tests) so the block is its own element to box. A citation in
+no block keeps the old tint. Known limit: footnotes and reference-style links defined on the other
+side of the cut don't resolve. Tried on the Mac in Verse Graph's test vault (2026-09-28), with long
+notes for each case: good. On the phone in `0.6.0-beta.1`, through BRAT: good. **Session 5 done.**
 
 **Done when:** choosing a note in the graph shows the block citing the selected verse boxed, on
 the Mac and on the phone.
