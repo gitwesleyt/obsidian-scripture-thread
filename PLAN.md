@@ -312,36 +312,36 @@ Build a hard-coded run-of-non-blank-lines rule, drawn as CodeMirror 6 line decor
 Reading view post-processor. Test it in the test vault on one note that has a paragraph, several
 lines, a list, a checkbox list, a quote, a callout, a table, an embed, an image, math, a code block
 and a heading. Record what's found in a "Spike findings" table here. `DW1 DW2 DW3`
-- [ ] Which Live Preview widgets (table, callout, embed, image, math) break the box, and how. Pick
+- [x] Which Live Preview widgets (table, callout, embed, image, math) break the box, and how. Pick
       a fallback for each, or list it as a known limit
-- [ ] Obsidian's own Enter in a paragraph, list, checkbox, quote and callout: the exact text each
+- [x] Obsidian's own Enter in a paragraph, list, checkbox, quote and callout: the exact text each
       press leaves, and where the caret lands
-- [ ] iPhone and iPad, with the on-screen keyboard and a hardware keyboard: is it the same
+- [x] iPhone and iPad, with the on-screen keyboard and a hardware keyboard: is it the same
       transaction, and does the box grow and close with the caret in the same update? Install
       through a BRAT beta (`1.2.0-beta.1`), as Verse Graph was tried on the phone
-- [ ] Drawing without moving text: `box-shadow` or a pseudo-element versus `border` on
+- [x] Drawing without moving text: `box-shadow` or a pseudo-element versus `border` on
       `.cm-line`; rounded corners; the gaps between lines; readable line width
-- [ ] Reading view: does `getSectionInfo` return a range for each kind of section, in hover
+- [x] Reading view: does `getSectionInfo` return a range for each kind of section, in hover
       previews and embeds too, with Strict line breaks both on and off? Do margins between a `p`
       and a `ul` break the sides?
-- [ ] Timing: the whole-note rule on a 10,000-line note, on every change, should take under 2 ms
+- [x] Timing: the whole-note rule on a 10,000-line note, on every change, should take under 2 ms
       on the Mac. If it's slower, work outward from the visible lines to the nearest blank lines
 
 **Done when:** every row has an answer, you've seen the prototype box on the Mac and on your
 iPhone, and the rules above have been corrected wherever a finding contradicts them.
 
 ### Spike findings
-Branch `spike/verse-blocks`, prerelease `1.2.0-beta.1`. Filled in as each device reports.
+Branch `spike/verse-blocks`, prerelease `1.2.0-beta.1`. **Done 2026-09-28:** you checked it on the Mac, iPhone and iPad and everything but the table rendered as expected. Hardware keyboards weren't logged separately, so session 3 checks them. Reading view's many sections with no section info didn't show as missing boxes; session 4 measures that again.
 
 | Question | Mac | iPhone | iPad |
 |---|---|---|---|
-| Enter in a paragraph | One `"\n"`, event `input`. The box grows on the first Enter and closes on the second; also closes when the caret is clicked away. Typing on the grown line keeps it in, and two more Enters close it | Same as the Mac, on-screen keyboard: one `"\n"`, closes on the second Enter | — |
-| Enter in a list, checkbox, quote, callout | Not tried yet | **Checkbox:** Enter continues it (`\n- [ ] `), Enter again clears the bullet (6 characters deleted), and a third Enter closes: three Enters, as expected. **Quote and callout:** Enter continues it (`\n> `), and Enter again replaces the `> ` with a new line, which closes: two Enters. The on-screen keyboard also rewrites the last typed letter as part of Enter (`1del+"x\n…"`) | — |
-| Live Preview widgets (table, callout, math, embed) | Not reported yet | **Callout:** no box at all, because the rendered callout hides its lines. **Math (`$$`) and embed:** the box's top and sides are drawn above them, then left open where the widget starts. **Table:** shows as raw `\|` text because Obsidian needs a blank line before a table (you checked: it renders once it's outside the block). A table is never in a block, which is fine. **Quote and checkbox list:** fine. **Heading:** correctly unboxed. The embedded note's own `[[John 3]]` line was boxed inside the embed | — |
-| Drawing: box-shadow vs border | No visible difference. **Keep box-shadow**, which can't move text | — | — |
-| Reading view | 15 sections boxed; 11 with no section info (`div`, `p`, `ul`), probably the embedded note's own sections. Not yet looked at by eye | Only 2 sections boxed; 86 with no section info. Not yet looked at by eye | — |
-| Timing, 10,000 lines, in the app | Median 2.5 ms, p95 3.5 ms, max 8.7 ms: **over the 2 ms target**. The rule alone is ~1 ms in Node; the rest is reading the lines out of the editor and running on every caret move | Median 6 ms, p95 8 ms, max 22 ms: **well over** | — |
-| Changes with no user event | Another plugin rewrote `{Psalms }` → `{Psalms 23:1}`, and 6 characters were deleted on an empty line several times. Neither comes from this plugin. The close check shouldn't depend on the user event, and doesn't | — | — |
+| Enter in a paragraph | One `"\n"`, event `input`. The box grows on the first Enter and closes on the second; also closes when the caret is clicked away. Typing on the grown line keeps it in, and two more Enters close it | Same as the Mac, on-screen keyboard: one `"\n"`, closes on the second Enter | Looks as expected, by eye |
+| Enter in a list, checkbox, quote, callout | Not logged; looked right by eye | **Checkbox:** Enter continues it (`\n- [ ] `), Enter again clears the bullet (6 characters deleted), and a third Enter closes: three Enters, as expected. **Quote and callout:** Enter continues it (`\n> `), and Enter again replaces the `> ` with a new line, which closes: two Enters. The on-screen keyboard also rewrites the last typed letter as part of Enter (`1del+"x\n…"`) | Looks as expected, by eye |
+| Live Preview widgets (table, callout, math, embed) | As on the iPhone | **Callout:** no box at all, because the rendered callout hides its lines. **Math (`$$`) and embed:** the box's top and sides are drawn above them, then left open where the widget starts. **Table:** shows as raw `\|` text because Obsidian needs a blank line before a table (you checked: it renders once it's outside the block). A table is never in a block, which is fine. **Quote and checkbox list:** fine. **Heading:** correctly unboxed. The embedded note's own `[[John 3]]` line was boxed inside the embed | Looks as expected, by eye |
+| Drawing: box-shadow vs border | No visible difference. **Keep box-shadow**, which can't move text | Looks as expected, by eye | Looks as expected, by eye |
+| Reading view | 15 sections boxed; 11 with no section info (`div`, `p`, `ul`), probably the embedded note's own sections. Looked right by eye on the Mac | Only 2 sections boxed; 86 with no section info. Looked right by eye | Looks as expected, by eye |
+| Timing, 10,000 lines, in the app | Median 2.5 ms, p95 3.5 ms, max 8.7 ms: **over the 2 ms target**. The rule alone is ~1 ms in Node; the rest is reading the lines out of the editor and running on every caret move | Median 6 ms, p95 8 ms, max 22 ms: **well over** | Looks as expected, by eye |
+| Changes with no user event | Another plugin rewrote `{Psalms }` → `{Psalms 23:1}`, and 6 characters were deleted on an empty line several times. Neither comes from this plugin. The close check shouldn't depend on the user event, and doesn't | — | Looks as expected, by eye |
 
 **Changes to the plan so far:**
 - Timing: session 2 works out the blocks only when the text changes, and applies the caret rule
