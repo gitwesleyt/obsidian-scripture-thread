@@ -1,5 +1,5 @@
 import type { Extension } from '@codemirror/state';
-import { MarkdownView, TFolder } from 'obsidian';
+import { TFolder } from 'obsidian';
 import { verseBlockDecorations } from '../blocks/verse-block-decorations';
 import { markVerseBlocks } from '../blocks/verse-block-reading';
 import { cursorTracker } from '../context/cursor-tracker';
@@ -24,23 +24,35 @@ export function registerAll(plugin: SettingsHost): void {
 function registerVerseBlocks(plugin: SettingsHost): void {
 	const editorExtensions: Extension[] = [];
 	plugin.registerEditorExtension(editorExtensions);
-	plugin.registerMarkdownPostProcessor((el, context) => {
-		if (plugin.settings.verseBlocks) markVerseBlocks(el, context);
-	});
+	// Reading view keeps sections it has already drawn, so they're always marked and
+	// the setting's body class decides whether the marks are drawn.
+	plugin.registerMarkdownPostProcessor(markVerseBlocks);
 
 	plugin.applyVerseBlocks = () => {
 		editorExtensions.length = 0;
 		if (plugin.settings.verseBlocks) editorExtensions.push(verseBlockDecorations);
 		plugin.app.workspace.updateOptions();
-		rerenderReadingViews(plugin);
+		for (const doc of openDocuments(plugin)) showVerseBlocks(doc, plugin.settings.verseBlocks);
 	};
 	plugin.applyVerseBlocks();
+
+	plugin.registerEvent(
+		plugin.app.workspace.on('window-open', (win) => showVerseBlocks(win.doc, plugin.settings.verseBlocks)),
+	);
+	plugin.register(() => {
+		for (const doc of openDocuments(plugin)) showVerseBlocks(doc, false);
+	});
 }
 
-function rerenderReadingViews(plugin: SettingsHost): void {
-	for (const leaf of plugin.app.workspace.getLeavesOfType('markdown')) {
-		if (leaf.view instanceof MarkdownView) leaf.view.previewMode.rerender(true);
-	}
+function showVerseBlocks(doc: Document, show: boolean): void {
+	doc.body.toggleClass('scripture-thread-verse-blocks-on', show);
+}
+
+/** The main window and any pop-out windows. */
+function openDocuments(plugin: SettingsHost): Set<Document> {
+	const docs = new Set<Document>([document]);
+	plugin.app.workspace.iterateAllLeaves((leaf) => docs.add(leaf.view.containerEl.doc));
+	return docs;
 }
 
 function registerVerseContext(plugin: SettingsHost): void {

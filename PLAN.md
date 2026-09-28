@@ -446,6 +446,12 @@ Built: the post-processor waits a frame so the section is on the page before ask
 into the next section. The switch empties the array given to `registerEditorExtension`, calls
 `workspace.updateOptions()` and re-renders every open Reading view. Try it in `1.2.0-beta.5`.
 
+Tried in `beta.5`: Reading view matched, but switching off left the boxes in Reading view, because
+Obsidian keeps the sections it has already drawn and re-rendering didn't redraw them. Fixed in
+`1.2.0-beta.6`: Reading view always marks its sections, and the switch puts a class on the body
+of every window (`scripture-thread-verse-blocks-on`) that the CSS needs before it draws anything.
+The editor still drops its extension when off, so it does no work.
+
 
 **Done when:** the test note shows the same boxes in Reading view on the Mac and on iOS, the switch
 turns them off in all three modes, and `1.2.0` is in your real vault through BRAT.
