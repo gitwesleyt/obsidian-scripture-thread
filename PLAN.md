@@ -623,6 +623,6 @@ command IDs without the plugin ID, no sample code in `main.ts`, the id `scriptur
 name are unused among 8,197 listed plugins.
 
 ## Release and submit
-- [ ] Make the repository public
+- [x] Make the repository public
 - [ ] Merge, release `1.3.2` through Actions, and check the workflow's run
 - [ ] You: sign in at community.obsidian.md, link GitHub, add the plugin, and act on the review

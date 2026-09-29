@@ -7,6 +7,8 @@ follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.3.2] - 2026-09-29
+
 ### Fixed
 - The plugin could fail to load on older iPhones and iPads: one pattern used a regular-expression
   feature their browser engine can't read.
