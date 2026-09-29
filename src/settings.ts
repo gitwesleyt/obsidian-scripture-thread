@@ -106,7 +106,7 @@ export class ScriptureThreadSettingTab extends PluginSettingTab {
 	}
 
 	private addGeneralSection(): void {
-		const group = new SettingGroup(this.containerEl).setHeading(HEADINGS.general);
+		const group = new SettingGroup(this.containerEl);
 		const { settings } = this.host;
 
 		group.addSetting((setting) => {

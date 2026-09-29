@@ -132,7 +132,7 @@ Live Preview, Source mode and Reading view, on Mac, iPhone and iPad. Full rules:
   `John 3 16.md`, the `isParentLink` rule) doesn't open a block.
 - **Closing animation:** the border colour settles from `--text-muted` to its resting colour over
   320ms `ease-out`, on every line of the block at once; `prefers-reduced-motion` removes it.
-- **Setting: Verse blocks**, in General, on by default; off removes the border in all three modes.
+- **Setting: Verse blocks**, at the top of the settings, on by default; off removes the border in all three modes.
 - The grouping rule lives in `src/verse-block-rules.ts` — pure, no imports, tested — so Verse
   Graph can copy it the way it copies `verse-rules.ts`.
 
@@ -188,6 +188,8 @@ for the general idea of debounce-on-pause / cache-unchanged-paragraphs, but don'
   one file (e.g. `src/commands/index.ts`), not scattered across feature files. Keep that file as
   the one place that shows everything the plugin has wired up.
 - TypeScript strict mode and the template's existing ESLint config stay as-is — don't reconfigure.
+- **No lookbehind (`(?<=`, `(?<!`) in regular expressions.** Older iOS can't parse it, and one such
+  regex stops the whole plugin loading there (Obsidian's plugin guidelines).
 - **Settings work on Obsidian 1.11 and later.** Obsidian 1.13 draws the tab from
   `getSettingDefinitions()` (`src/settings-definitions.ts`), which makes it searchable; older
   versions call `display()` (`src/settings.ts`). A new setting goes in both, with its name and

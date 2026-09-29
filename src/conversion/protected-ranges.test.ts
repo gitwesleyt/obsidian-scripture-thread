@@ -36,6 +36,13 @@ describe('the default ignore list', () => {
 		expect(isProtected('a stray ` then John 3:16', 'John 3:16')).toBe(false);
 	});
 
+	it('closes inline code only on a run of the same length', () => {
+		expect(isProtected('`x` John 3:16 `y`', 'John 3:16')).toBe(false);
+		expect(isProtected('``a ` John 3:16``', 'John 3:16')).toBe(true);
+		expect(isProtected('`a`` John 3:16', 'John 3:16')).toBe(false);
+		expect(isProtected('`a\n\nJohn 3:16`', 'John 3:16')).toBe(false);
+	});
+
 	it('protects a callout block and every quoted line under it', () => {
 		const note = '> [!quote] Title\n> John 3:16\n> more\nJohn 3:17';
 		expect(isProtected(note, 'John 3:16')).toBe(true);

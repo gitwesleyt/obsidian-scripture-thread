@@ -8,12 +8,12 @@ import type { ConversionFolderLocation } from './settings-data';
  * `display()` fallback for older versions, so the two never drift apart.
  */
 
+/** The settings every command shares come first, without a heading, as Obsidian's guidelines ask. */
 export const HEADINGS = {
-	general: 'General',
-	skippedText: 'Convert commands: Skipped Text',
-	currentNote: 'Convert command: Current Note',
-	folder: 'Convert command: References in Folder',
-	wholeVault: 'Convert command: Whole Vault',
+	skippedText: 'Convert commands: skipped text',
+	currentNote: 'Convert command: current note',
+	folder: 'Convert command: references in folder',
+	wholeVault: 'Convert command: whole vault',
 };
 
 type Text = { name: string; desc: string };

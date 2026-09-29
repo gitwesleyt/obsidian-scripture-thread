@@ -34,7 +34,6 @@ export function settingDefinitions(
 	return [
 		{
 			type: 'group',
-			heading: HEADINGS.general,
 			items: [
 				{ ...TEXT.notesLocation, control: { type: 'dropdown', key: 'notesLocation', options: NOTES_LOCATION_LABELS } },
 				{
