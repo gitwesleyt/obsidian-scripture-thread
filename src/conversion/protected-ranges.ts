@@ -111,7 +111,9 @@ const QUOTED = /^[ \t]*>/;
 const BLANK_LINE = /\n[ \t]*(?:\n|$)/y;
 
 // A run of backticks closed by a run of the same length, never across a blank line.
-const INLINE_CODE = /(`+)(?!`)(?:(?!\n[ \t]*\n)[\s\S])+?(?<!`)\1(?!`)/g;
+// The last character before the closing run is matched rather than looked behind at:
+// older iOS can't parse lookbehind, which would stop the plugin loading at all.
+const INLINE_CODE = /(`+)(?!`)(?:(?!\n[ \t]*\n)[\s\S])*?(?!\n[ \t]*\n)[^`]\1(?!`)/g;
 const WIKILINK = /!?\[\[[^\]\n]*\]\]/g;
 const MARKDOWN_LINK = /!?\[[^\]\n]*\]\([^)\n]*\)/g;
 

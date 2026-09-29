@@ -25,26 +25,24 @@ folders are only created when a reference is converted.
 
 ## Installation
 
-Requires Obsidian 1.11 or later. Each vault has its own plugins, so install it in every vault
-you want it in — a vault synced across devices (iCloud, Obsidian Sync) brings the plugin along.
+Requires Obsidian 1.11 or later, on desktop and mobile. Each vault has its own plugins, so install
+it in every vault you want it in — a vault synced across devices (iCloud, Obsidian Sync) brings the
+plugin along.
 
-### With BRAT (recommended — updates itself)
+### From Community plugins
+1. In Obsidian, open Settings → Community plugins, and turn off Restricted mode if it's on.
+2. Choose **Browse**, search for **Scripture Thread**, then **Install** and **Enable**.
+
+Obsidian offers new versions under Settings → Community plugins → **Check for updates**.
+
+### With BRAT (beta versions)
 [BRAT](https://github.com/TfTHacker/obsidian42-brat) installs plugins straight from their GitHub
-releases and keeps them up to date.
+releases, including pre-release betas.
 
 1. Install and enable **BRAT** from Settings → Community plugins → Browse.
-2. This repository is private, so BRAT needs a GitHub token to read it. On GitHub, go to
-   Settings → Developer settings → Personal access tokens → **Fine-grained tokens** → Generate
-   new token. Under *Repository access* choose *Only select repositories* and pick
-   `obsidian-scripture-thread`; under *Permissions*, set **Contents** to *Read-only*. Copy the
-   token and paste it into BRAT's settings (the personal access token field). Tokens expire, so
-   when BRAT can no longer update, generate a new one.
-3. In BRAT's settings choose **Add beta plugin**, enter `gitwesleyt/obsidian-scripture-thread`,
-   and pick the latest version.
-4. Enable **Scripture Thread** in Settings → Community plugins.
-
-To get new versions, turn on BRAT's option to check for updates at startup, or run BRAT's
-"Check for updates" command.
+2. In BRAT's settings choose **Add beta plugin**, enter `gitwesleyt/obsidian-scripture-thread`,
+   and pick a version.
+3. Enable **Scripture Thread** in Settings → Community plugins.
 
 ### By hand
 1. From the [latest release](https://github.com/gitwesleyt/obsidian-scripture-thread/releases/latest),
@@ -56,6 +54,13 @@ To get new versions, turn on BRAT's option to check for updates at startup, or r
 
 To update, download the new release's three files over the old ones, then turn the plugin off
 and on again.
+
+## Privacy
+
+Scripture Thread works entirely inside your vault. It makes no network requests, collects no
+telemetry, needs no account, and never reads or writes files outside the vault. The only notes it
+changes are the ones you convert, and the only notes it creates are the verse, chapter, book and
+testament notes those conversions link to.
 
 ## Usage
 
@@ -195,7 +200,7 @@ By default, conversion leaves these alone:
 - The Bible Reference plugin's `--John1:1` syntax
 
 That makes it safe to run alongside other Bible-reference plugins that use those conventions.
-Each of these has a switch under **Settings → Convert commands: Skipped Text**, and you can add
+Each of these has a switch under **Convert commands: skipped text** in the plugin's settings, and you can add
 your own start/end markers there too (see Settings below).
 
 Some things are always skipped, whatever the settings: existing wikilinks and embeds (so running
@@ -205,7 +210,7 @@ a command twice is safe), Markdown links, and web addresses.
 
 On Obsidian 1.13 and later, every setting below shows up in the settings search.
 
-**General**
+**At the top** — used by every command.
 - **Default location for new notes** — where created notes go: *Vault folder*, *Same folder as
   current file* (the note being converted), or *In the folder specified below* (default:
   `Bible`). Applies to every note the plugin creates, from all three commands.
@@ -217,7 +222,7 @@ On Obsidian 1.13 and later, every setting below shows up in the settings search.
   references). Off by default.
 - **Verse blocks** — draws the border round verse blocks (see Verse blocks). On by default.
 
-**Convert commands: Skipped Text** — applies to all three commands.
+**Convert commands: skipped text** — applies to all three commands.
 - A switch for each built-in rule: **Frontmatter**, **Code blocks**, **Inline code**,
   **Obsidian comments** (`%%…%%`), **Callouts**, **Curly braces**, and **Double-dash
   references** (Bible Reference's `--John1:1`). All on by default; turn one off to convert
@@ -230,16 +235,16 @@ On Obsidian 1.13 and later, every setting below shows up in the settings search.
   start of `Source:` skips every line that begins with it. A start marker with no end after it
   skips the rest of the note.
 
-**Convert command: Current Note** — uses the General and Skipped Text settings; nothing of its
+**Convert command: current note** — uses the settings above and the skipped text; nothing of its
 own.
 
-**Convert command: References in Folder**
+**Convert command: references in folder**
 - **Folder to convert** — *Same folder as current file* (the default) or *In the folder specified
   below*. With the first option, the command won't run from a note in the vault root, since that
   would convert the whole vault without the confirmation step — use the whole-vault command
   instead.
 
-**Convert command: Whole Vault**
+**Convert command: whole vault**
 - **Excluded folders** — one folder per line, skipped by the whole-vault command and by convert as
   you type (for example templates or archives). The other two commands don't use this list, since
   there you've already chosen exactly what to convert.

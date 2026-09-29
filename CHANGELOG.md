@@ -7,6 +7,18 @@ follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+- The plugin could fail to load on older iPhones and iPads: one pattern used a regular-expression
+  feature their browser engine can't read.
+
+### Changed
+- Folder paths in settings are cleaned up the same way on every platform (a trailing `/` or
+  doubled slashes no longer matter).
+- Settings follow Obsidian's guidelines: the shared settings sit at the top without a heading, and
+  headings are in sentence case.
+- A new plugin description, and a Privacy section in the README: no network use, no telemetry, no
+  account, nothing outside the vault.
+
 ## [1.3.1] - 2026-09-29
 
 ### Added
