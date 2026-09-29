@@ -1,39 +1,26 @@
-import { App, Plugin, PluginSettingTab, Setting, SettingGroup } from 'obsidian';
+import {
+	App,
+	Plugin,
+	PluginSettingTab,
+	Setting,
+	SettingGroup,
+	requireApiVersion,
+	type SettingDefinitionItem,
+} from 'obsidian';
 import type { NotesLocation } from './conversion/note-names';
-import type { IgnoreRules, MarkerPair } from './conversion/protected-ranges';
+import type { MarkerPair } from './conversion/protected-ranges';
 import type { ConversionFolderLocation, ScriptureThreadSettings } from './settings-data';
+import { readSetting, settingDefinitions, writeSetting } from './settings-definitions';
+import {
+	CONVERSION_FOLDER_LABELS,
+	EXCLUDED_FOLDERS_PLACEHOLDER,
+	HEADINGS,
+	IGNORE_SWITCHES,
+	MARKER_PLACEHOLDERS,
+	NOTES_LOCATION_LABELS,
+	TEXT,
+} from './settings-text';
 import { FolderSuggest } from './ui/folder-suggest';
-
-const NOTES_LOCATION_LABELS: Record<NotesLocation, string> = {
-	root: 'Vault folder',
-	current: 'Same folder as current file',
-	folder: 'In the folder specified below',
-};
-
-type IgnoreSwitch = Exclude<keyof IgnoreRules, 'markers'>;
-
-const IGNORE_SWITCHES: { key: IgnoreSwitch; name: string; description: string }[] = [
-	{ key: 'frontmatter', name: 'Frontmatter', description: 'The properties at the top of a note. If you turn this off, check them afterwards: a link in a property needs quotes around it.' },
-	{ key: 'codeBlocks', name: 'Code blocks', description: 'Blocks fenced by ``` or ~~~ lines.' },
-	{ key: 'inlineCode', name: 'Inline code', description: 'Text between backticks.' },
-	{ key: 'comments', name: 'Obsidian comments', description: 'Text between %% marks, which Obsidian hides when reading.' },
-	{ key: 'callouts', name: 'Callouts', description: 'A > [!type] line and the > lines under it.' },
-	{
-		key: 'curlyBraces',
-		name: 'Curly braces',
-		description: 'Text inside {braces}, the Bible Verse plugin\'s syntax.',
-	},
-	{
-		key: 'bibleReferenceSyntax',
-		name: 'Double-dash references',
-		description: 'The Bible Reference plugin\'s --John1:1 syntax.',
-	},
-];
-
-const CONVERSION_FOLDER_LABELS: Record<ConversionFolderLocation, string> = {
-	current: 'Same folder as current file',
-	folder: 'In the folder specified below',
-};
 
 export interface SettingsHost extends Plugin {
 	settings: ScriptureThreadSettings;
@@ -45,6 +32,7 @@ export interface SettingsHost extends Plugin {
 }
 
 type FolderKey = 'notesFolder' | 'conversionFolder';
+
 
 /** One section per command, plus the settings every command shares. */
 export class ScriptureThreadSettingTab extends PluginSettingTab {
@@ -59,7 +47,55 @@ export class ScriptureThreadSettingTab extends PluginSettingTab {
 		super(app, host);
 	}
 
+	/**
+	 * Obsidian 1.13 and later draws the tab from these and can search them, and
+	 * then never calls `display()`, which stays as the fallback for older versions.
+	 */
+	getSettingDefinitions(): SettingDefinitionItem[] {
+		const { markers } = this.host.settings.ignore;
+		const definitions = settingDefinitions(this.host.settings, {
+			add: () => {
+				markers.push({ start: '', end: '' });
+				this.focusMarkerIndex = markers.length - 1;
+				void this.saveAndUpdate();
+			},
+			remove: (index) => {
+				markers.splice(index, 1);
+				void this.saveAndUpdate();
+			},
+			changed: () => void this.host.saveSettings(),
+			focusIndex: this.focusMarkerIndex,
+		});
+		this.focusMarkerIndex = null;
+		return definitions;
+	}
+
+	getControlValue(key: string): unknown {
+		return readSetting(this.host.settings, key);
+	}
+
+	async setControlValue(key: string, value: unknown): Promise<void> {
+		writeSetting(this.host.settings, key, value);
+		await this.host.saveSettings();
+
+		if (key === 'liveConversion') this.host.applyLiveConversion();
+		if (key === 'verseBlocks') this.host.applyVerseBlocks();
+		// Each shows or hides its folder picker. Only 1.13, which draws from definitions, calls this.
+		const showsFolder = key === 'notesLocation' || key === 'conversionFolderLocation';
+		if (requireApiVersion('1.13.0') && showsFolder) this.refreshDomState();
+	}
+
+	private async saveAndUpdate(): Promise<void> {
+		await this.host.saveSettings();
+		if (requireApiVersion('1.13.0')) this.update();
+	}
+
 	display(): void {
+		this.draw();
+	}
+
+	/** The tab for Obsidian before 1.13, which has no `getSettingDefinitions()`. */
+	private draw(): void {
 		this.containerEl.empty();
 
 		this.addGeneralSection();
@@ -70,14 +106,14 @@ export class ScriptureThreadSettingTab extends PluginSettingTab {
 	}
 
 	private addGeneralSection(): void {
-		const group = new SettingGroup(this.containerEl).setHeading('General');
+		const group = new SettingGroup(this.containerEl).setHeading(HEADINGS.general);
 		const { settings } = this.host;
 
 		group.addSetting((setting) => {
 			setting
-				.setName('Default location for new notes')
+				.setName(TEXT.notesLocation.name)
 				.setDesc(
-					'Where new verse, chapter, book and testament notes are placed, for every command. When converting a folder or the whole vault, the current file is each note being converted.',
+					TEXT.notesLocation.desc,
 				)
 				.addDropdown((dropdown) =>
 					dropdown
@@ -94,8 +130,8 @@ export class ScriptureThreadSettingTab extends PluginSettingTab {
 			group.addSetting((setting) => {
 				this.folderPicker(
 					setting,
-					'Folder to create new notes in',
-					'New verse, chapter, book and testament notes will appear in this folder.',
+					TEXT.notesFolder.name,
+					TEXT.notesFolder.desc,
 					'notesFolder',
 				);
 			});
@@ -103,8 +139,8 @@ export class ScriptureThreadSettingTab extends PluginSettingTab {
 
 		group.addSetting((setting) => {
 			setting
-				.setName('Split by testament')
-				.setDesc('File new notes into "Old Testament" and "New Testament" subfolders of the location above.')
+				.setName(TEXT.splitByTestament.name)
+				.setDesc(TEXT.splitByTestament.desc)
 				.addToggle((toggle) =>
 					toggle.setValue(settings.splitByTestament).onChange(async (value) => {
 						settings.splitByTestament = value;
@@ -115,9 +151,9 @@ export class ScriptureThreadSettingTab extends PluginSettingTab {
 
 		group.addSetting((setting) => {
 			setting
-				.setName('Standardize references')
+				.setName(TEXT.standardizeReferences.name)
 				.setDesc(
-					'Show every reference in one standard form: Ps 23:1 becomes Psalm 23:1, and Jn 3.16 becomes John 3:16. Also updates links you have already converted. Where a link points never changes.',
+					TEXT.standardizeReferences.desc,
 				)
 				.addToggle((toggle) =>
 					toggle.setValue(settings.standardizeReferences).onChange(async (value) => {
@@ -129,9 +165,9 @@ export class ScriptureThreadSettingTab extends PluginSettingTab {
 
 		group.addSetting((setting) => {
 			setting
-				.setName('Convert as you type')
+				.setName(TEXT.liveConversion.name)
 				.setDesc(
-					'Turn a reference you type into a link when you leave its line, and create its notes. Undo turns it back into plain text. Uses the skipped-text settings below, and does nothing in the whole-vault excluded folders.',
+					TEXT.liveConversion.desc,
 				)
 				.addToggle((toggle) =>
 					toggle.setValue(settings.liveConversion).onChange(async (value) => {
@@ -144,9 +180,9 @@ export class ScriptureThreadSettingTab extends PluginSettingTab {
 
 		group.addSetting((setting) => {
 			setting
-				.setName('Verse blocks')
+				.setName(TEXT.verseBlocks.name)
 				.setDesc(
-					'Draw a border round a paragraph that links to a verse, and the lines you add under it. A blank line closes it.',
+					TEXT.verseBlocks.desc,
 				)
 				.addToggle((toggle) =>
 					toggle.setValue(settings.verseBlocks).onChange(async (value) => {
@@ -160,12 +196,12 @@ export class ScriptureThreadSettingTab extends PluginSettingTab {
 	}
 
 	private addSkippedTextSection(): void {
-		const group = new SettingGroup(this.containerEl).setHeading('Convert commands: Skipped Text');
+		const group = new SettingGroup(this.containerEl).setHeading(HEADINGS.skippedText);
 		const { ignore } = this.host.settings;
 
 		group.addSetting((setting) => {
 			setting.setDesc(
-				'All three convert commands leave these parts of a note alone. Existing links and Markdown links are always skipped, so converting twice is safe.',
+				TEXT.skippedText.desc,
 			);
 		});
 
@@ -173,7 +209,7 @@ export class ScriptureThreadSettingTab extends PluginSettingTab {
 			group.addSetting((setting) => {
 				setting
 					.setName(rule.name)
-					.setDesc(rule.description)
+					.setDesc(rule.desc)
 					.addToggle((toggle) =>
 						toggle.setValue(ignore[rule.key]).onChange(async (value) => {
 							ignore[rule.key] = value;
@@ -185,9 +221,9 @@ export class ScriptureThreadSettingTab extends PluginSettingTab {
 
 		group.addSetting((setting) => {
 			setting
-				.setName('Your own markers')
+				.setName(TEXT.markers.name)
 				.setDesc(
-					'Text from a start marker to the next end marker is skipped, even across lines. Leave the end empty to skip to the end of the line.',
+					TEXT.markers.desc,
 				)
 				.addButton((button) => {
 					button.setButtonText('Add marker pair').onClick(() => void this.addMarker());
@@ -210,10 +246,10 @@ export class ScriptureThreadSettingTab extends PluginSettingTab {
 		setting
 			.setName(`Markers ${index + 1}`)
 			.addText((text) => {
-				text.setPlaceholder('Start, e.g. %%').setValue(pair.start).onChange((value) => save('start', value));
+				text.setPlaceholder(MARKER_PLACEHOLDERS.start).setValue(pair.start).onChange((value) => save('start', value));
 				if (index === this.focusMarkerIndex) this.fieldToFocus = text.inputEl;
 			})
-			.addText((text) => text.setPlaceholder('End of line').setValue(pair.end).onChange((value) => save('end', value)))
+			.addText((text) => text.setPlaceholder(MARKER_PLACEHOLDERS.end).setValue(pair.end).onChange((value) => save('end', value)))
 			.addExtraButton((button) => {
 				button
 					.setIcon('trash')
@@ -239,22 +275,22 @@ export class ScriptureThreadSettingTab extends PluginSettingTab {
 	}
 
 	private addCurrentNoteSection(): void {
-		new SettingGroup(this.containerEl).setHeading('Convert command: Current Note').addSetting((setting) => {
+		new SettingGroup(this.containerEl).setHeading(HEADINGS.currentNote).addSetting((setting) => {
 			setting.setDesc(
-				'The "convert references in current note" command converts the note open in the editor. It uses the general and skipped-text settings above, and one undo reverses it.',
+				TEXT.currentNote.desc,
 			);
 		});
 	}
 
 	private addFolderSection(): void {
-		const group = new SettingGroup(this.containerEl).setHeading('Convert command: References in Folder');
+		const group = new SettingGroup(this.containerEl).setHeading(HEADINGS.folder);
 		const { settings } = this.host;
 
 		group.addSetting((setting) => {
 			setting
-				.setName('Folder to convert')
+				.setName(TEXT.conversionFolderLocation.name)
 				.setDesc(
-					'Scanned by the "convert references in folder" command, including subfolders. Right-clicking a folder in the file explorer converts that folder instead.',
+					TEXT.conversionFolderLocation.desc,
 				)
 				.addDropdown((dropdown) =>
 					dropdown
@@ -271,8 +307,8 @@ export class ScriptureThreadSettingTab extends PluginSettingTab {
 			group.addSetting((setting) => {
 				this.folderPicker(
 					setting,
-					'Folder to convert references in',
-					'The "convert references in folder" command will scan this folder.',
+					TEXT.conversionFolder.name,
+					TEXT.conversionFolder.desc,
 					'conversionFolder',
 				);
 			});
@@ -280,19 +316,19 @@ export class ScriptureThreadSettingTab extends PluginSettingTab {
 	}
 
 	private addWholeVaultSection(): void {
-		new SettingGroup(this.containerEl).setHeading('Convert command: Whole Vault').addSetting((setting) => {
+		new SettingGroup(this.containerEl).setHeading(HEADINGS.wholeVault).addSetting((setting) => {
 			setting.settingEl.addClass('scripture-thread-stacked-setting');
 			setting
-				.setName('Excluded folders')
+				.setName(TEXT.excludedFolders.name)
 				.setDesc(
-					'Skipped by the "convert references in whole vault" command, which always asks for confirmation first, and by convert as you type. One folder per line.',
+					TEXT.excludedFolders.desc,
 				)
 				.addTextArea((textArea) => {
 					// Unwrapped, so a long folder path never looks like two entries.
 					textArea.inputEl.setAttr('wrap', 'off');
 					textArea.inputEl.rows = 4;
 					textArea
-						.setPlaceholder('Templates\nArchive')
+						.setPlaceholder(EXCLUDED_FOLDERS_PLACEHOLDER)
 						.setValue(this.host.settings.excludedFolders.join('\n'))
 						.onChange(async (value) => {
 							this.host.settings.excludedFolders = value
@@ -329,7 +365,7 @@ export class ScriptureThreadSettingTab extends PluginSettingTab {
 
 		const scroller = scrollingAncestor(this.containerEl);
 		const scrollTop = scroller?.scrollTop ?? 0;
-		this.display();
+		this.draw();
 		if (scroller) scroller.scrollTop = scrollTop;
 	}
 }

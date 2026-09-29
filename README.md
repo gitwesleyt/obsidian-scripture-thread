@@ -148,6 +148,9 @@ form, and Standardize references.
   command.
 - Nothing happens in the whole-vault **excluded folders**, so templates stay as they are.
 - A reference after a `[[` or `{` you haven't closed yet on that line is left alone.
+- Switching to another note or closing it counts as leaving the line. That conversion is written
+  to the saved note, so undo can't reverse it, and it's skipped if the note is still open in
+  another pane.
 
 ### What it recognizes
 
@@ -200,6 +203,8 @@ a command twice is safe), Markdown links, and web addresses.
 
 ## Settings
 
+On Obsidian 1.13 and later, every setting below shows up in the settings search.
+
 **General**
 - **Default location for new notes** — where created notes go: *Vault folder*, *Same folder as
   current file* (the note being converted), or *In the folder specified below* (default:
@@ -251,11 +256,9 @@ own.
 - Verse blocks in Reading view: a section Obsidian doesn't give a position for isn't boxed. With
   **Strict line breaks** on, Reading view runs a block's lines together into one paragraph.
 - A table needs a blank line above it, so a table is never inside a verse block.
-- Convert as you type: a reference still on the caret's line when you switch notes or close the
-  note isn't converted; run a command to catch it. A reference that runs across a line break
-  isn't found.
-- Mobile: verse blocks were tried on iPhone and iPad. The panel and conversion run entirely
-  in-plugin (no external processes), but haven't been specifically tested on mobile yet.
+- Convert as you type: a reference that runs across a line break isn't found. One still on the
+  caret's line when you leave a note that's also open in another pane isn't converted; run a
+  command to catch it.
 
 ## Development
 

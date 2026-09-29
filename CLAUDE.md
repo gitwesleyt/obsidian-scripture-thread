@@ -85,6 +85,9 @@ chain.
   - The same rules as the commands: Skipped text, alias form, Standardize (only the links typed
     on the line), semicolons, hidden characters, and its parent chain created at once. A reference
     after an unclosed `[[` or `{` on its line is left alone: a link still being typed.
+  - **Leaving the note** (switching notes, closing the tab) converts what's still waiting on the
+    caret's line by writing to the saved file — only when the file is exactly the editor's text
+    and the note isn't open in another pane, else nothing. That one can't be undone in the editor.
   - Skips the whole-vault **excluded folders**. No Notice.
   - The detector runs on the typed lines only; skipped regions come from the whole note.
 - Conversion produces the linked note **structure only** — do not populate new verse notes with
@@ -185,6 +188,12 @@ for the general idea of debounce-on-pause / cache-unchanged-paragraphs, but don'
   one file (e.g. `src/commands/index.ts`), not scattered across feature files. Keep that file as
   the one place that shows everything the plugin has wired up.
 - TypeScript strict mode and the template's existing ESLint config stay as-is — don't reconfigure.
+- **Settings work on Obsidian 1.11 and later.** Obsidian 1.13 draws the tab from
+  `getSettingDefinitions()` (`src/settings-definitions.ts`), which makes it searchable; older
+  versions call `display()` (`src/settings.ts`). A new setting goes in both, with its name and
+  description in `src/settings-text.ts`, and 1.13-only calls sit behind a literal
+  `requireApiVersion('1.13.0')`. `minAppVersion` stays at 1.11.0 so the plugin can go public
+  without cutting off older versions.
 - No on-keystroke *reference detection*. The detector runs from a command, or, with convert as
   you type on, once per line the caret leaves, on the typed lines only — never on every
   keystroke and never over the whole note. The verse block border re-reads the note's lines for
