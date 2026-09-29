@@ -7,6 +7,8 @@ follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.3.1] - 2026-09-29
+
 ### Added
 - Settings show up in Obsidian's settings search, on Obsidian 1.13 and later. Older versions keep
   the same settings tab as before.
