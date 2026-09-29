@@ -293,8 +293,8 @@ That writes `main.js`; copy it with `manifest.json` and `styles.css` into a vaul
 `.obsidian/plugins/scripture-thread/` folder.
 
 ### Releasing a new version
-Releases are made from your own machine with the [GitHub CLI](https://cli.github.com/) (`gh`),
-so they don't use GitHub Actions minutes.
+GitHub Actions publishes each release when its tag is pushed, after running the same checks, and
+attaches build provenance so anyone can verify the files were built from this repository.
 
 1. In `CHANGELOG.md`, move the entries under *Unreleased* into a new heading for the version.
    Commit that on `master`.
@@ -305,16 +305,20 @@ so they don't use GitHub Actions minutes.
    ```
    This updates `package.json`, `manifest.json` and `versions.json`, commits, and tags the
    commit `1.0.1` — no `v`, which is what Obsidian and BRAT expect.
-3. Push the commit and its tag:
-   ```bash
-   git push --follow-tags
-   ```
-4. Build, check, and publish the release with the three plugin files attached:
+3. Check, then push the commit and its tag:
    ```bash
    npm run release
    ```
+   The *Release Obsidian plugin* workflow then publishes the release with `main.js`,
+   `manifest.json` and `styles.css`, and refuses a tag that doesn't match `manifest.json`.
 
-BRAT picks up the new version the next time it checks for updates.
+**A beta for BRAT:** tag a branch's commit with a pre-release version and push the tag. The
+workflow publishes it as a prerelease whose manifest carries that version, and nothing on the
+branch changes:
+```bash
+git tag 1.3.2-beta.1
+git push origin 1.3.2-beta.1
+```
 
 ## License
 

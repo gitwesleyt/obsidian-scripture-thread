@@ -585,3 +585,44 @@ Tried in `1.3.0-beta.1` (2026-09-28): looks good.
 
 Tried in `1.3.1-beta.2` (2026-09-29): everything works. Released as `1.3.1`.
 
+
+---
+
+# Public release: the community directory
+
+Measured against Obsidian's Developer policies, Submission requirements for plugins and Plugin
+guidelines (read from `obsidianmd/obsidian-developer-docs`, 2026-09-29). Submission is through
+community.obsidian.md, with an automated review.
+
+## Decisions
+- [x] Command names keep "Bible", a proper noun. The `sentence-case` lint rule flags it: known
+      false positives, explained if the review asks. Command IDs never change
+- [x] Description, as you wrote it: "Convert plain-text Bible references into links as you write
+      or on demand, see your previous notes about a verse, and frame paragraphs that cite Bible
+      references." (161 characters, ends with a period)
+- [x] No `fundingUrl`
+- [x] The repository goes public; no secrets in its history
+- [x] Releases come from GitHub Actions, with build provenance, once the repo is public
+
+## Fixes
+- [x] The one lookbehind regex (inline code, `protected-ranges.ts`) rewritten without it: older
+      iOS can't parse lookbehind, so the plugin wouldn't have loaded there. 4 new tests; a
+      CLAUDE.md convention
+- [x] `normalizePath()` on the folder settings, on load and save (`main.ts`)
+- [x] Settings: the shared settings at the top without a heading; headings in sentence case
+- [x] README: install from Community plugins, BRAT without a token, and a Privacy section (no
+      network, telemetry or account; nothing outside the vault)
+- [x] The sample template's `AGENTS.md` removed
+- [x] `release.yml` publishes on a tag push after `npm run check`, with provenance; a tag with a
+      `-` is a prerelease beta; a release tag must match `manifest.json`. `lint.yml` runs on pushes
+      and pull requests. `npm run release` now checks and pushes the tag
+
+Audited and fine: no Node or Electron APIs (`isDesktopOnly` false is right), no `innerHTML`, no
+console logging, no inline styles, no `activeLeaf`, `vault.process` rather than `modify`,
+command IDs without the plugin ID, no sample code in `main.ts`, the id `scripture-thread` and the
+name are unused among 8,197 listed plugins.
+
+## Release and submit
+- [ ] Make the repository public
+- [ ] Merge, release `1.3.2` through Actions, and check the workflow's run
+- [ ] You: sign in at community.obsidian.md, link GitHub, add the plugin, and act on the review
