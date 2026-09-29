@@ -559,8 +559,8 @@ Tried in `1.3.0-beta.1` (2026-09-28): looks good.
 # Housekeeping and small improvements
 
 - [x] Delete the merged `feature/live-conversion` branch, locally and on GitHub
-- [ ] README: drop "haven't been specifically tested on mobile" once the panel and the three
-      commands have been tried on the iPhone and iPad
+- [x] README: drop "haven't been specifically tested on mobile": the panel and the three
+      commands tried on the iPhone and iPad in `1.3.1-beta.2`
 - [x] **Convert on leaving a note.** CM6 destroys the view plugin when Obsidian swaps the note
       out or closes the tab, and the editor can't be changed then, so
       `src/live/convert-on-close.ts` writes the conversion to the saved file. It checks at 0, 250
@@ -568,7 +568,7 @@ Tried in `1.3.0-beta.1` (2026-09-28): looks good.
       and the note isn't open in another pane. The note's path is recorded while typing, since
       by teardown Obsidian may already point the editor at the next note. 3 tests with an
       in-memory vault
-- [ ] Try it in a beta: switch notes, close the tab, quit Obsidian, and a note open in two panes
+- [x] Try it in a beta: switch notes, close the tab, quit Obsidian, and a note open in two panes
 - [x] **Settings search, keeping `minAppVersion` 1.11.0.** `obsidian.d.ts` 1.13 says `display()`
       isn't called when `getSettingDefinitions()` returns items, and to keep it "as a fallback for
       plugins that need to support Obsidian versions older than 1.13.0". So:
@@ -580,7 +580,8 @@ Tried in `1.3.0-beta.1` (2026-09-28): looks good.
         `display()` is untouched apart from taking its text from `settings-text.ts`.
         `update()` and `refreshDomState()` sit behind `requireApiVersion('1.13.0')`
       - `obsidian` pinned to `1.13.1` (it was `latest`, locked at 1.12.3) for the new types
-- [ ] Try settings in a beta on Obsidian 1.13 (search finds them; folder pickers show and hide;
-      marker pairs add, edit, remove; each toggle takes effect) and, if possible, on 1.12 (the old
-      tab)
+- [x] Try settings in a beta on Obsidian 1.13 (search finds them; folder pickers show and hide;
+      marker pairs add, edit, remove; each toggle takes effect)
+
+Tried in `1.3.1-beta.2` (2026-09-29): everything works. Released as `1.3.1`.
 

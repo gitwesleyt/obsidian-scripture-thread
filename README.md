@@ -259,8 +259,6 @@ own.
 - Convert as you type: a reference that runs across a line break isn't found. One still on the
   caret's line when you leave a note that's also open in another pane isn't converted; run a
   command to catch it.
-- Mobile: verse blocks were tried on iPhone and iPad. The panel and conversion run entirely
-  in-plugin (no external processes), but haven't been specifically tested on mobile yet.
 
 ## Development
 
