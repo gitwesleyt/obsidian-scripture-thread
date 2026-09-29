@@ -624,5 +624,6 @@ name are unused among 8,197 listed plugins.
 
 ## Release and submit
 - [x] Make the repository public
-- [ ] Merge, release `1.3.2` through Actions, and check the workflow's run
+- [x] Merge, release `1.3.2` through Actions, and check the workflow's run: it passed, and
+      `gh attestation verify` confirms the published `main.js` (2026-09-29)
 - [ ] You: sign in at community.obsidian.md, link GitHub, add the plugin, and act on the review
