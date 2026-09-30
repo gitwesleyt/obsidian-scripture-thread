@@ -13,6 +13,7 @@ follows [Semantic Versioning](https://semver.org/).
 - With **Transform dictated references** on, the whole-vault confirmation and the review screen
   now warn that links already made from dictated words will be rewritten too, with a way to
   cancel first.
+
 ## [1.4.0] - 2026-09-30
 
 ### Added
