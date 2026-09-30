@@ -7,6 +7,8 @@ follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.4.1] - 2026-09-30
+
 ### Changed
 - With **Transform dictated references** on, the whole-vault confirmation and the review screen
   now warn that links already made from dictated words will be rewritten too, with a way to
