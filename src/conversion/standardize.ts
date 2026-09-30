@@ -68,7 +68,8 @@ function standardTextFor(
 	if (visible === undefined) return target.includes('#') ? null : link.reference;
 
 	const typed = parseReference(visible, spoken);
-	if (typed) return samePassage(typed, link) ? link.reference : null;
+	// The typed reading, not the link's own: it keeps a verse's "b", which the link's target lacks.
+	if (typed) return samePassage(typed, link) ? typed.reference : null;
 
 	// "30:22" in "Proverbs 17:7; 30:22" -- a later chapter of the same book, which stays short.
 	if (!STARTS_WITH_NUMBER.test(visible.trim())) return null;

@@ -32,6 +32,7 @@ import { findSpokenVerseReferences, mergeSpokenMatches } from "./spoken-verse-ru
  *   Jn. 3:16           with or without a full stop after the abbreviation
  *   John 3.16          a full stop in place of the colon
  *   Romans 8 28        or a space, when the second number could be a verse
+ *   Hebrews 12:1b      a verse's a, b or c part -- the same verse, written as typed
  *
  * **One thing it deliberately refuses**: anything inside a web address, so a
  * pasted link to a passage does not sprout a chip of its own. The visible text
@@ -141,7 +142,8 @@ function matchReference(book: BibleBook, chapter: number, tail: Tail): string {
   const runs: { chapter: number; parts: string[] }[] = [];
 
   for (const span of tail.spans) {
-    const part = span.first === span.last ? `${span.first}` : `${span.first}-${span.last}`;
+    const first = `${span.first}${span.firstSuffix ?? ""}`;
+    const part = span.first === span.last ? first : `${first}-${span.last}${span.lastSuffix ?? ""}`;
     const open = runs.at(-1);
 
     if (open && open.chapter === span.chapter) open.parts.push(part);
@@ -325,7 +327,14 @@ export function startsABookName(text: string, at: number): boolean {
  * chapter from the match it belongs to. Every span in a reference with no
  * semicolon in it simply carries the same one.
  */
-export type Span = { chapter: number; first: number; last: number };
+export type Span = {
+  chapter: number;
+  first: number;
+  last: number;
+  /** The `b` of "12:1b", when the writer named part of a verse. Never changes which verse. */
+  firstSuffix?: string;
+  lastSuffix?: string;
+};
 
 /** What follows the chapter number. */
 export type Tail =
@@ -389,6 +398,28 @@ function takeNumber(
   return found === null ? null : { value: Number(found[0]), end: NUMBER.lastIndex };
 }
 
+type VerseNumber = { value: number; end: number; suffix: string };
+
+/**
+ * The letter that names part of a verse: "Hebrews 12:1b", "John 3:16a-18".
+ *
+ * **Only `a`, `b` or `c`, and only when no letter follows**, so "John 3:16and"
+ * and "Psalm 23:1abc" are not read as a part of a verse. The verse it belongs to
+ * is the same one -- "12:1b" tags Hebrews 12:1 -- and the letter only stays in
+ * what was typed and in the reference read back.
+ */
+const PART_OF_VERSE = /[a-c](?![A-Za-z])/y;
+
+function takeVerseNumber(text: string, at: number): VerseNumber | null {
+  const number = takeNumber(text, at);
+  if (number === null) return null;
+
+  const end = take(PART_OF_VERSE, text, number.end);
+  if (end === null) return { ...number, suffix: "" };
+
+  return { value: number.value, end, suffix: text.slice(number.end, end) };
+}
+
 function isVerseNumber(value: number): boolean {
   return value >= 1 && value <= MAX_VERSE_NUMBER;
 }
@@ -413,11 +444,11 @@ function isVerseNumber(value: number): boolean {
 function takeFirstVerse(
   text: string,
   at: number,
-): { value: number; end: number } | "nonsense" | null {
+): VerseNumber | "nonsense" | null {
   const afterSeparator = take(COLON, text, at) ?? take(DOT, text, at);
 
   if (afterSeparator !== null) {
-    const verse = takeNumber(text, afterSeparator);
+    const verse = takeVerseNumber(text, afterSeparator);
     if (verse === null) return null;
     return isVerseNumber(verse.value) ? verse : "nonsense";
   }
@@ -425,7 +456,7 @@ function takeFirstVerse(
   const afterSpace = take(SPACE, text, at);
   if (afterSpace === null || startsABookName(text, afterSpace)) return null;
 
-  const verse = takeNumber(text, afterSpace);
+  const verse = takeVerseNumber(text, afterSpace);
   return verse !== null && isVerseNumber(verse.value) ? verse : null;
 }
 
@@ -473,7 +504,7 @@ function parseTail(
       if (afterComma !== null) {
         if (startsABookName(text, afterComma)) break;
 
-        const next = takeNumber(text, afterComma);
+        const next = takeVerseNumber(text, afterComma);
         if (next === null || next.value < 1 || next.value > MAX_VERSE_NUMBER) break;
 
         cursor = closeSpan(text, next, on, spans);
@@ -523,20 +554,29 @@ function parseTail(
  */
 function closeSpan(
   text: string,
-  first: { value: number; end: number },
+  first: VerseNumber,
   chapter: number,
   spans: Span[],
 ): number {
   const afterTo = take(TO, text, first.end);
-  const last = afterTo === null ? null : takeNumber(text, afterTo);
+  const last = afterTo === null ? null : takeVerseNumber(text, afterTo);
 
   if (last !== null && last.value > first.value && last.value <= MAX_VERSE_NUMBER) {
-    spans.push({ chapter, first: first.value, last: last.value });
+    spans.push(spanOf(chapter, first, last));
     return last.end;
   }
 
-  spans.push({ chapter, first: first.value, last: first.value });
+  spans.push(spanOf(chapter, first));
   return first.end;
+}
+
+function spanOf(chapter: number, first: VerseNumber, last?: VerseNumber): Span {
+  const span: Span = { chapter, first: first.value, last: (last ?? first).value };
+
+  if (first.suffix !== "") span.firstSuffix = first.suffix;
+  if (last !== undefined && last.suffix !== "") span.lastSuffix = last.suffix;
+
+  return span;
 }
 
 /**

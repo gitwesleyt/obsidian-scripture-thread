@@ -53,6 +53,28 @@ describe('converting a note', () => {
 	});
 });
 
+describe('a letter naming part of a verse', () => {
+	it('keeps the letter as typed and links the verse note', () => {
+		expect(converted('Hebrews 12:1b')).toBe('[[Hebrews 12 1|Hebrews 12:1b]]');
+		expect(converted('John 3:16a-18 and Psalm 23:1a, 3')).toBe(
+			'[[John 3 16-18|John 3:16a-18]] and [[Psalms 23 1,3|Psalm 23:1a, 3]]',
+		);
+		expect(converted('Proverbs 17:7a; 30:22b')).toBe(
+			'[[Proverbs 17 7|Proverbs 17:7a]]; [[Proverbs 30 22|30:22b]]',
+		);
+	});
+
+	it('creates the notes of the verse, not of the letter', () => {
+		expect(convertText('Hebrews 12:1b').chains).toEqual([
+			['Hebrews 12 1', 'Hebrews 12', 'Hebrews', 'New Testament'],
+		]);
+	});
+
+	it('takes <u> off a reference that ends in the letter', () => {
+		expect(converted('<u>Hebrews 12:1b</u>')).toBe('[[Hebrews 12 1|Hebrews 12:1b]]');
+	});
+});
+
 describe('invisible characters', () => {
 	it('finds a reference split by one, and replaces it cleanly', () => {
 		expect(converted('see Genesis\u200b 1:1 now')).toBe('see [[Genesis 1 1|Genesis 1:1]] now');

@@ -14,6 +14,10 @@ describe('reading a link as a Bible reference', () => {
 		expect(parseBibleLink('Matthew 6 1-3,7')?.keys).toHaveLength(4);
 	});
 
+	it('reads a name ending in a letter for part of a verse as that verse', () => {
+		expect(parseBibleLink('Hebrews 12 1b')?.keys).toEqual(['Hebrews|12|1']);
+	});
+
 	it('reads chapters and chapter ranges', () => {
 		expect(parseBibleLink('Psalms 23')).toMatchObject({ level: 'chapter', keys: ['Psalms|23|'] });
 		expect(parseBibleLink('Matthew 5-7')?.keys).toEqual(['Matthew|5|', 'Matthew|6|', 'Matthew|7|']);

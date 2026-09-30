@@ -39,6 +39,11 @@ describe('standardizing existing links', () => {
 		expect(standardized('[[Psalms 23|ps 23]]')).toBe('[[Psalms 23|Psalm 23]]');
 	});
 
+	it('keeps the letter naming part of a verse', () => {
+		expect(standardized('Heb 12.1b')).toBe('[[Hebrews 12 1|Hebrews 12:1b]]');
+		expect(standardized('[[Hebrews 12 1|Heb 12:1b]]')).toBe('[[Hebrews 12 1|Hebrews 12:1b]]');
+	});
+
 	it('gives a bare link standard text', () => {
 		expect(standardized('[[Psalms 23 1]]')).toBe('[[Psalms 23 1|Psalm 23:1]]');
 	});
