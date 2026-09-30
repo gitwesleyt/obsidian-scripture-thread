@@ -63,7 +63,7 @@ describe('converting dictated references', () => {
 	});
 });
 
-describe('writing dictated references the usual way', () => {
+describe('transforming dictated references', () => {
 	const usual = { ...dictating, standardizeDictated: true };
 
 	it('shows the standard form instead of the spoken words', () => {
@@ -83,10 +83,17 @@ describe('writing dictated references the usual way', () => {
 		);
 	});
 
-	it('is what standardize references already does, for every reference', () => {
-		const everything = { ...dictating, standardizeReferences: true };
-		expect(converted('Ps 23:1 and john three sixteen', everything)).toBe(
+	it('standardizes what was typed as well, when both switches are on', () => {
+		const both = { ...usual, standardizeReferences: true };
+		expect(converted('Ps 23:1 and john three sixteen', both)).toBe(
 			'[[Psalms 23 1|Psalm 23:1]] and [[John 3 16|John 3:16]]',
+		);
+	});
+
+	it('is the only switch that changes dictated words', () => {
+		const standardizeOnly = { ...dictating, standardizeReferences: true };
+		expect(converted('Ps 23:1 and john three sixteen', standardizeOnly)).toBe(
+			'[[Psalms 23 1|Psalm 23:1]] and [[John 3 16|john three sixteen]]',
 		);
 	});
 
@@ -96,23 +103,33 @@ describe('writing dictated references the usual way', () => {
 	});
 });
 
-describe('standardizing links that already show dictated words', () => {
-	const standardizing = { ...dictating, standardizeReferences: true };
+describe('links that already show dictated words', () => {
+	const transforming = { ...dictating, standardizeDictated: true };
 
-	it('rewrites the visible words, and never where the link points', () => {
-		expect(converted('[[Revelation 3 5-7|revelation three verses five through seven]]', standardizing)).toBe(
+	it('are rewritten by Transform, and never where the link points', () => {
+		expect(converted('[[Revelation 3 5-7|revelation three verses five through seven]]', transforming)).toBe(
 			'[[Revelation 3 5-7|Revelation 3:5-7]]',
 		);
 	});
 
+	it('are not touched by Standardize references', () => {
+		const link = '[[Revelation 3 5-7|revelation three verses five through seven]]';
+		expect(converted(link, { ...dictating, standardizeReferences: true })).toBe(link);
+	});
+
+	it('leave typed links alone when only Transform is on', () => {
+		const link = '[[John 3 16|Jn 3.16]] and [[Psalms 23 1]]';
+		expect(converted(link, transforming)).toBe(link);
+	});
+
 	it('keeps them while dictated references are not recognized', () => {
 		const link = '[[John 3 16|john three sixteen]]';
-		expect(converted(link, { ...DEFAULT_CONVERSION_OPTIONS, standardizeReferences: true })).toBe(link);
+		expect(converted(link, { ...DEFAULT_CONVERSION_OPTIONS, standardizeDictated: true })).toBe(link);
 	});
 
 	it('keeps visible text that is not a reference to the same passage', () => {
 		const link = '[[John 3 16|john three seventeen]]';
-		expect(converted(link, standardizing)).toBe(link);
+		expect(converted(link, transforming)).toBe(link);
 	});
 });
 

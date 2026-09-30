@@ -12,14 +12,13 @@ follows [Semantic Versioning](https://semver.org/).
   writes them — `revelation three verses five through seven`, `John three sixteen`, `first john
   four verse eight`, `Psalm 23 to 25` — are found and linked by every convert command and by
   convert as you type. The link keeps the spoken words as its visible text.
-- **Write dictated references the usual way** setting, shown while the one above is on: a
-  dictated reference's link reads `Revelation 3:5-7` instead of the words as spoken. References
-  you typed keep your text.
+- **Transform dictated references** setting, shown while the one above is on: a dictated
+  reference's link reads `Revelation 3:5-7` instead of the words as spoken, and links already
+  converted from dictated words are rewritten the same way. References you typed keep your text.
+  **Standardize references** only ever changes references you typed, never dictated words.
 - The **folder** and **whole-vault** commands ask about the doubtful dictated references first
   (those that don't say `verse`, like `mark one`), all ticked to start with. Unticked ones stay
   plain text.
-- **Standardize references** also tidies existing links whose visible text is dictated words, when
-  dictated references are recognized.
 
 ## [1.3.2] - 2026-09-29
 

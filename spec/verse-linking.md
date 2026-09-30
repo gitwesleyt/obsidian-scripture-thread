@@ -107,4 +107,4 @@ A dictated match is *doubtful* unless it says `verse` or `verses`, which stands 
 grammar also makes at exactly the same characters is never dictated, so `jn 3:16` is never doubtful.
 The folder and whole-vault commands list the doubtful ones for review before writing; see
 `CLAUDE.md`, Feature 4. Nothing dictated is ever rewritten in place: the link's visible text is the
-spoken words, or the standard form with *Write dictated references the usual way*.
+spoken words, or the standard form with *Transform dictated references*. *Standardize references* never changes dictated words.

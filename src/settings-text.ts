@@ -33,15 +33,15 @@ export const TEXT = {
 	},
 	standardizeReferences: {
 		name: 'Standardize references',
-		desc: 'Show every reference in one standard form: Ps 23:1 becomes Psalm 23:1, and Jn 3.16 becomes John 3:16. Also updates links you have already converted. Where a link points never changes.',
+		desc: 'Show every reference you typed in one standard form: Ps 23:1 becomes Psalm 23:1, and Jn 3.16 becomes John 3:16. Also updates links you have already converted. Where a link points never changes. Dictated words are left as spoken; Transform dictated references changes those.',
 	},
 	spokenReferences: {
 		name: 'Recognize dictated references',
 		desc: 'Also find references the way dictation writes them: "revelation three verses five through seven" or "John three sixteen". Every convert command and convert as you type use it. The folder and whole-vault commands ask about the doubtful ones first, such as "mark one", and leave the ones you untick as text.',
 	},
 	standardizeDictated: {
-		name: 'Write dictated references the usual way',
-		desc: 'A dictated reference becomes a link that reads Revelation 3:5-7 instead of the words as spoken. References you typed keep the text you wrote. Standardize references does the same for every reference.',
+		name: 'Transform dictated references',
+		desc: 'A dictated reference becomes a link that reads Revelation 3:5-7 instead of the words as spoken, and links already converted from dictated words are rewritten the same way. References you typed keep the text you wrote.',
 	},
 	liveConversion: {
 		name: 'Convert as you type',

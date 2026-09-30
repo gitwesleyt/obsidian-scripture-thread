@@ -26,7 +26,7 @@ export type ConversionOptions = {
 	standardizeReferences: boolean;
 	/** Also find references the way dictation writes them: "john three sixteen". */
 	spokenReferences: boolean;
-	/** Show a dictated reference in standard form, and leave the ones you typed as typed. */
+	/** Show a dictated reference in standard form, and leave the ones you typed as typed. Only dictated words are touched by it, and only it touches them. */
 	standardizeDictated: boolean;
 	/**
 	 * Asked about every doubtful dictated reference, with its words; true leaves
@@ -95,7 +95,8 @@ export function convertText(
 			continue;
 		}
 
-		const standardForm = options.standardizeReferences || (options.standardizeDictated && found.dictated);
+		// Standardize touches what was typed; only the dictated switch touches dictated words.
+		const standardForm = found.dictated ? options.standardizeDictated : options.standardizeReferences;
 		for (const target of targetsFor(match)) {
 			const alias = standardForm ? target.standard : target.alias;
 			conversion.edits.push({
@@ -109,9 +110,13 @@ export function convertText(
 		convertedUpTo = match.end;
 	}
 
-	if (options.standardizeReferences) {
+	const kinds = {
+		typed: options.standardizeReferences,
+		dictated: options.spokenReferences && options.standardizeDictated,
+	};
+	if (kinds.typed || kinds.dictated) {
 		const skipped = skippedRegions(cleaned, options.ignore);
-		const linkEdits = standardizeLinks(cleaned, skipped, options.spokenReferences).filter((edit) =>
+		const linkEdits = standardizeLinks(cleaned, skipped, kinds).filter((edit) =>
 			isWanted(edit.from, edit.to),
 		);
 		for (const edit of linkEdits) {

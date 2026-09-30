@@ -151,7 +151,7 @@ references* below.
 link as soon as you leave its line — press Enter, use an arrow key, or tap elsewhere — and its
 notes are created. Nothing changes while you're still on the line, so `John 3` isn't linked
 before you've typed `:16`. It follows the same rules as the commands: the skipped text, the alias
-form, and Standardize references.
+form, Standardize references and Transform dictated references.
 
 - **Undo turns the link back into the text you typed**, and it stays plain until you edit it.
   Any notes it created stay.
@@ -229,9 +229,11 @@ Off by default. With **Recognize dictated references** on, these are found after
 - **Words like "it was a revelation to me" and "numbers don't lie" are left alone**, as is a date
   such as `June 16`.
 - **The link keeps the words as spoken** — `[[Revelation 3 5-7|revelation three verses five
-  through seven]]` — unless you turn on **Write dictated references the usual way**, which shows
-  `Revelation 3:5-7` instead. That switch touches only dictated references; ones you typed keep
-  the text you wrote. (**Standardize references** does the same for every reference.)
+  through seven]]` — unless you turn on **Transform dictated references**, which shows
+  `Revelation 3:5-7` instead, and does the same to links already converted from dictated words.
+  That switch is the only one that changes dictated words, and it changes only them: ones you
+  typed keep the text you wrote. **Standardize references** works on typed references only, so
+  `Rev 3` becomes `Revelation 3` but `revelation three` stays as spoken.
 - **The folder and whole-vault commands ask about the doubtful ones first.** Those rewrite many
   notes at once where you can't see them, so a dictated reference that doesn't say `verse` —
   `mark one`, `psalm twenty three` — is listed for you to untick if it's just words. Every one
@@ -255,13 +257,14 @@ On Obsidian 1.13 and later, every setting below shows up in the settings search.
   `Bible`). Applies to every note the plugin creates, from all three commands.
 - **Split by testament** — files new notes into `Old Testament/` and `New Testament/` subfolders
   of that location. The two testament notes themselves sit at the location's root. On by default.
-- **Standardize references** — writes references in one standard form, including links you've
-  already converted (see Converting references). Off by default.
+- **Standardize references** — writes the references you typed in one standard form, including
+  links you've already converted (see Converting references). Dictated words are left as spoken.
+  Off by default.
 - **Recognize dictated references** — also finds references the way dictation writes them (see
   Dictated references). Off by default.
-- **Write dictated references the usual way** — shown only while the setting above is on. A
-  dictated reference's link reads `Revelation 3:5-7` instead of the spoken words; references you
-  typed keep your text. Off by default.
+- **Transform dictated references** — shown only while the setting above is on. A dictated
+  reference's link reads `Revelation 3:5-7` instead of the spoken words, including links already
+  converted from dictated words; references you typed keep your text. Off by default.
 - **Convert as you type** — converts the references on a line when you leave it (see Converting
   references). Off by default.
 - **Verse blocks** — draws the border round verse blocks (see Verse blocks). On by default.

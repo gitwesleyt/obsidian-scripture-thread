@@ -15,10 +15,18 @@ const STARTS_WITH_NUMBER = /^\d/;
  *
  * Where the link points never changes, and text that isn't a reference to the
  * same passage -- `[[John 3 16|this verse]]` -- is the writer's own and is kept.
- * With `spoken`, visible text a writer dictated -- `john three sixteen` -- is a
- * reference too.
+ * The two kinds of visible text are switched separately: `typed` for what the
+ * writer typed (`Jn 3.16`), `dictated` for words that only the dictated grammar
+ * reads (`john three sixteen`). Standardizing typed references never touches
+ * dictated words.
  */
-export function standardizeLinks(text: string, skipped: readonly Range[], spoken = false): LinkEdit[] {
+export type StandardizeKinds = { typed: boolean; dictated: boolean };
+
+export function standardizeLinks(
+	text: string,
+	skipped: readonly Range[],
+	kinds: StandardizeKinds = { typed: true, dictated: false },
+): LinkEdit[] {
 	const edits: LinkEdit[] = [];
 
 	for (const found of text.matchAll(WIKILINK)) {
@@ -28,13 +36,26 @@ export function standardizeLinks(text: string, skipped: readonly Range[], spoken
 		if (embed || overlapsAny(skipped, from, to)) continue;
 
 		const link = parseBibleLink(linkpathOf(target));
-		const standard = link && standardTextFor(link, target, visible, spoken);
+		const standard = link && standardFor(link, target, visible, kinds);
 		if (standard && standard !== visible) {
 			edits.push({ from, to, insert: `[[${target}|${standard}]]` });
 		}
 	}
 
 	return edits;
+}
+
+function standardFor(
+	link: BibleLink,
+	target: string,
+	visible: string | undefined,
+	kinds: StandardizeKinds,
+): string | null {
+	// Text the typed grammar reads is typed, whatever else also reads it.
+	const typed = standardTextFor(link, target, visible, false);
+	if (typed !== null) return kinds.typed ? typed : null;
+
+	return kinds.dictated ? standardTextFor(link, target, visible, true) : null;
 }
 
 function standardTextFor(

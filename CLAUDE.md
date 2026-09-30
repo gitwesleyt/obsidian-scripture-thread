@@ -160,9 +160,10 @@ there are no tags to store, so the "chips" are the links Feature 2 writes. Rules
   longer**; an equal reading keeps the typed one (`mergeSpokenMatches`). A match is *dictated*
   when the typed grammar makes no match at exactly those characters.
 - **The alias is the words as spoken**, like a typed one, unless the second setting is on.
-- **Setting: write dictated references the usual way** (off by default, shown only while the first
-  is on) — Feature 11.4 in the web app. A dictated reference's alias is the standard form
-  (`[[Revelation 3 5-7|Revelation 3:5-7]]`); typed ones keep their text. It's the web app's
+- **Setting: transform dictated references** (off by default, shown only while the first is on) —
+  Feature 11.4 in the web app. A dictated reference's alias is the standard form
+  (`[[Revelation 3 5-7|Revelation 3:5-7]]`); typed ones keep their text. It also rewrites the
+  visible text of existing links that read as dictated words. It's the web app's
   rewrite-when-the-caret-leaves rule met by convert as you type, which already converts when the
   caret leaves the line, so no editor extension was ported.
 - **Doubtful dictated references** — those with no `verse`/`verses` in them (`mark one`,
@@ -171,8 +172,10 @@ there are no tags to store, so the "chips" are the links Feature 2 writes. Rules
   ones stay plain text and are asked about again next time (nothing is stored). The current-note
   command and convert as you type never ask: the writer is looking at the line and undo works.
   The vault modal reads the notes, asks, then converts, each with progress.
-- **Standardize references** also tidies existing links whose visible text is dictated words, but
-  only while recognizing is on.
+- **The two standardizing switches never overlap.** Standardize references changes only what was
+  typed (`Rev 3` → `Revelation 3`, new conversions and existing links alike) and leaves dictated
+  words as spoken; Transform dictated references changes only dictated words. Both on, both
+  happen.
 - The plugin never listens to the microphone or decides whether dictation is running. It reads
   text. Nothing is sent anywhere.
 

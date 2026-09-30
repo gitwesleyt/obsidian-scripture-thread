@@ -73,7 +73,7 @@ describe('settings as searchable definitions', () => {
 	it('shows the dictated-references style switch only while dictated references are recognized', () => {
 		const settings = withDefaults(null);
 		const definitions = settingDefinitions(settings, noMarkerActions);
-		const style = named(definitions, 'Write dictated references the usual way');
+		const style = named(definitions, 'Transform dictated references');
 
 		expect(isVisible(named(definitions, 'Recognize dictated references'))).toBe(true);
 		expect(isVisible(style)).toBe(false);

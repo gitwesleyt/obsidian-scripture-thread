@@ -567,7 +567,7 @@ plugin never touches the microphone.
 | Web app | Here |
 |---|---|
 | 11.2 recognize dictated references (a switch) | **Recognize dictated references**; the grammar is ported unchanged, and `scanText(text, { spoken })` |
-| 11.4 rewrite the words once the caret has left the paragraph | **Write dictated references the usual way**: the link's visible text is the standard form. Convert as you type already fires when the caret leaves the line, so no editor extension. A first design, an in-place rewrite of the words, was dropped: the alias form keeps the text as spoken by default, and Standardize already covers rewriting |
+| 11.4 rewrite the words once the caret has left the paragraph | **Transform dictated references**: the link's visible text is the standard form, and existing links showing dictated words are rewritten too. Convert as you type already fires when the caret leaves the line, so no editor extension. Standardize references does not touch dictated words: the two switches are disjoint (changed in beta 2 after phone testing) |
 | 11.3 scan the journal, review the doubtful ones | The folder and whole-vault commands read first, ask about doubtful dictated references, then convert. There is no tag store to update, and no "removed" state to remember, so an unticked reference stays text and is asked about again |
 | Rewrite skips a reference the writer clicked away / undid | Not needed: undo turns a live conversion back to plain text and it stays plain (touched-ranges), and an unticked reference is never converted |
 
@@ -616,8 +616,7 @@ plugin never touches the microphone.
 ## Verification
 - [x] `npm run check`: build, lint 0 errors (the same 8 warnings), all tests green
 - [ ] Manual, on the Mac, in the test vault: switch on, type `john three sixteen`, Enter → linked,
-      notes created; undo → plain and stays plain; `first john four verse eight` with the second
-      switch → `[[1 John 4 8|1 John 4:8]]`; switch off → nothing converts
+      notes created; undo → plain and stays plain; `first john four verse eight` with Transform → `[[1 John 4 8|1 John 4:8]]`; switch off → nothing converts
 - [ ] Manual, on the iPhone and iPad, with the real dictation button: dictate a paragraph with
       `revelation three verses five through seven`, tap Done and tap elsewhere → converted only
       after the caret has left; **check that dictation revising its last words never fights a
