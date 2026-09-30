@@ -178,3 +178,50 @@ h4.scripture-thread-heading {
 .scripture-thread-verse-blocks-on .markdown-rendered .scripture-thread-verse-block {
 	display: flow-root;
 }
+
+/* The check of dictated references before a folder or whole-vault run. */
+.scripture-thread-review-list {
+	max-height: 50vh;
+	overflow-y: auto;
+	margin-bottom: var(--size-4-3);
+	border: 1px solid var(--background-modifier-border);
+	border-radius: var(--radius-m);
+}
+
+.scripture-thread-review-group + .scripture-thread-review-group {
+	border-top: 1px solid var(--background-modifier-border);
+}
+
+.scripture-thread-review-head,
+.scripture-thread-review-row {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--size-4-2);
+	padding: var(--size-4-2) var(--size-4-3);
+}
+
+.scripture-thread-review-head {
+	align-items: center;
+	background-color: var(--background-secondary);
+}
+
+.scripture-thread-review-row {
+	padding-left: var(--size-4-8);
+}
+
+.scripture-thread-review-path {
+	color: var(--text-faint);
+	font-size: var(--font-ui-smaller);
+	overflow-wrap: anywhere;
+}
+
+.scripture-thread-review-context {
+	color: var(--text-muted);
+	overflow-wrap: anywhere;
+}
+
+.scripture-thread-review-match {
+	color: var(--text-normal);
+	font-weight: var(--font-semibold);
+	background-color: var(--text-highlight-bg);
+}

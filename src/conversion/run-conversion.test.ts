@@ -6,8 +6,10 @@ import {
 	convertEditor,
 	convertFiles,
 	describeSummary,
+	findHeldReferences,
 	type ConversionSummary,
 } from './run-conversion';
+import { heldKey } from './references';
 
 /** Just enough of Obsidian's vault and link resolution to run a conversion in memory. */
 function fakeVault(initial: Record<string, string>) {
@@ -192,6 +194,7 @@ const nothingDone: ConversionSummary = {
 	linksCreated: 0,
 	linksStandardized: 0,
 	notesCreated: 0,
+	referencesHeld: 0,
 	failedPaths: [],
 	stoppedEarly: false,
 };
@@ -210,6 +213,86 @@ describe('standardizing references', () => {
 
 		const again = await convertFiles(app, settings, [fileFor('Journal/Sept.md')]);
 		expect(again).toMatchObject({ filesChanged: 0, linksCreated: 0, linksStandardized: 0 });
+	});
+});
+
+describe('dictated references in bulk', () => {
+	const dictating = { ...split, spokenReferences: true };
+	const note = 'Read revelation three verses five through seven, mark one of them.';
+
+	it('finds the doubtful ones without changing anything', async () => {
+		const { app, files, fileFor } = fakeVault({ 'a.md': note, 'b.md': 'Nothing here, John 3:16.' });
+
+		const held = await findHeldReferences(app, dictating, [fileFor('a.md'), fileFor('b.md')]);
+
+		expect(held).toEqual([
+			{ path: 'a.md', reference: 'Mark 1', source: 'mark one', before: 'Read revelation three verses five through seven, ', after: ' of them.' },
+		]);
+		expect(files.get('a.md')).toBe(note);
+	});
+
+	it('asks about a reference once per note, however often it is written', async () => {
+		const { app, fileFor } = fakeVault({ 'a.md': 'mark one, and again mark one' });
+
+		expect(await findHeldReferences(app, dictating, [fileFor('a.md')])).toHaveLength(1);
+	});
+
+	it('converts only the doubtful references that were approved', async () => {
+		const { app, files, fileFor } = fakeVault({ 'a.md': note });
+
+		const summary = await convertFiles(app, dictating, [fileFor('a.md')], {
+			approved: new Set(),
+		});
+
+		expect(files.get('a.md')).toBe(
+			'Read [[Revelation 3 5-7|revelation three verses five through seven]], mark one of them.',
+		);
+		expect(summary).toMatchObject({ linksCreated: 1, referencesHeld: 1 });
+		expect(describeSummary(summary)).toContain('Left 1 dictated reference as text.');
+	});
+
+	it('converts an approved doubtful reference', async () => {
+		const { app, files, fileFor } = fakeVault({ 'a.md': note });
+
+		const summary = await convertFiles(app, dictating, [fileFor('a.md')], {
+			approved: new Set([heldKey('a.md', 'mark one')]),
+		});
+
+		expect(files.get('a.md')).toContain('[[Mark 1|mark one]] of them.');
+		expect(summary).toMatchObject({ linksCreated: 2, referencesHeld: 0 });
+	});
+
+	it('answers per note: yes in one note is not yes in the other', async () => {
+		const { app, files, fileFor } = fakeVault({ 'a.md': 'mark one', 'b.md': 'mark one' });
+
+		await convertFiles(app, dictating, [fileFor('a.md'), fileFor('b.md')], {
+			approved: new Set([heldKey('a.md', 'mark one')]),
+		});
+
+		expect(files.get('a.md')).toBe('[[Mark 1|mark one]]');
+		expect(files.get('b.md')).toBe('mark one');
+	});
+
+	it('leaves a note whose only reference is held untouched, and counts it', async () => {
+		const { app, fileFor } = fakeVault({ 'a.md': 'mark one' });
+
+		const summary = await convertFiles(app, dictating, [fileFor('a.md')], { approved: new Set() });
+
+		expect(summary).toMatchObject({ filesChanged: 0, referencesHeld: 1 });
+	});
+
+	it('converts everything when no review was asked for', async () => {
+		const { app, files, fileFor } = fakeVault({ 'a.md': 'mark one' });
+
+		await convertFiles(app, dictating, [fileFor('a.md')]);
+
+		expect(files.get('a.md')).toBe('[[Mark 1|mark one]]');
+	});
+
+	it('finds nothing dictated while the setting is off', async () => {
+		const { app, fileFor } = fakeVault({ 'a.md': note });
+
+		expect(await findHeldReferences(app, split, [fileFor('a.md')])).toEqual([]);
 	});
 });
 

@@ -7,6 +7,25 @@ follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-09-30
+
+### Added
+- **Recognize dictated references** setting, off by default: references the way phone dictation
+  writes them — `revelation three verses five through seven`, `John three sixteen`, `first john
+  four verse eight`, `Psalm 23 to 25` — are found and linked by every convert command and by
+  convert as you type. The link keeps the spoken words as its visible text.
+- **Transform dictated references** setting, shown while the one above is on: a dictated
+  reference's link reads `Revelation 3:5-7` instead of the words as spoken, and links already
+  converted from dictated words are rewritten the same way. References you typed keep your text.
+  **Standardize references** only ever changes references you typed, never dictated words.
+- The **folder** and **whole-vault** commands ask about the doubtful dictated references first
+  (those that don't say `verse`, like `mark one`), all ticked to start with. Unticked ones stay
+  plain text.
+
+### Fixed
+- A number word could match a name every JavaScript object has, so `John constructor` produced a
+  garbled reference. Only real number words count now.
+
 ## [1.3.2] - 2026-09-29
 
 ### Fixed

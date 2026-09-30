@@ -80,9 +80,10 @@ export class ScriptureThreadSettingTab extends PluginSettingTab {
 
 		if (key === 'liveConversion') this.host.applyLiveConversion();
 		if (key === 'verseBlocks') this.host.applyVerseBlocks();
-		// Each shows or hides its folder picker. Only 1.13, which draws from definitions, calls this.
-		const showsFolder = key === 'notesLocation' || key === 'conversionFolderLocation';
-		if (requireApiVersion('1.13.0') && showsFolder) this.refreshDomState();
+		// Each shows or hides another setting. Only 1.13, which draws from definitions, calls this.
+		const showsMore =
+			key === 'notesLocation' || key === 'conversionFolderLocation' || key === 'spokenReferences';
+		if (requireApiVersion('1.13.0') && showsMore) this.refreshDomState();
 	}
 
 	private async saveAndUpdate(): Promise<void> {
@@ -162,6 +163,33 @@ export class ScriptureThreadSettingTab extends PluginSettingTab {
 					}),
 				);
 		});
+
+		group.addSetting((setting) => {
+			setting
+				.setName(TEXT.spokenReferences.name)
+				.setDesc(TEXT.spokenReferences.desc)
+				.addToggle((toggle) =>
+					toggle.setValue(settings.spokenReferences).onChange(async (value) => {
+						settings.spokenReferences = value;
+						// Shows or hides the switch under it.
+						await this.saveAndRedraw();
+					}),
+				);
+		});
+
+		if (settings.spokenReferences) {
+			group.addSetting((setting) => {
+				setting
+					.setName(TEXT.standardizeDictated.name)
+					.setDesc(TEXT.standardizeDictated.desc)
+					.addToggle((toggle) =>
+						toggle.setValue(settings.standardizeDictated).onChange(async (value) => {
+							settings.standardizeDictated = value;
+							await this.host.saveSettings();
+						}),
+					);
+			});
+		}
 
 		group.addSetting((setting) => {
 			setting

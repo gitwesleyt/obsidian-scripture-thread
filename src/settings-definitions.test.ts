@@ -41,6 +41,8 @@ describe('settings as searchable definitions', () => {
 				'notesFolder',
 				'splitByTestament',
 				'standardizeReferences',
+				'spokenReferences',
+				'standardizeDictated',
 				'liveConversion',
 				'verseBlocks',
 				'ignore.frontmatter',
@@ -66,6 +68,18 @@ describe('settings as searchable definitions', () => {
 		settings.conversionFolderLocation = 'folder';
 		expect(isVisible(named(definitions, 'Folder to create new notes in'))).toBe(true);
 		expect(isVisible(named(definitions, 'Folder to convert references in'))).toBe(true);
+	});
+
+	it('shows the dictated-references style switch only while dictated references are recognized', () => {
+		const settings = withDefaults(null);
+		const definitions = settingDefinitions(settings, noMarkerActions);
+		const style = named(definitions, 'Transform dictated references');
+
+		expect(isVisible(named(definitions, 'Recognize dictated references'))).toBe(true);
+		expect(isVisible(style)).toBe(false);
+
+		settings.spokenReferences = true;
+		expect(isVisible(style)).toBe(true);
 	});
 
 	it('lists one row per marker pair', () => {
@@ -98,8 +112,12 @@ describe('reading and writing a setting by its key', () => {
 	it('stores switches and choices', () => {
 		const settings = withDefaults(null);
 		writeSetting(settings, 'liveConversion', true);
+		writeSetting(settings, 'spokenReferences', true);
+		writeSetting(settings, 'standardizeDictated', true);
 		writeSetting(settings, 'conversionFolderLocation', 'folder');
 		expect(settings.liveConversion).toBe(true);
+		expect(readSetting(settings, 'spokenReferences')).toBe(true);
+		expect(readSetting(settings, 'standardizeDictated')).toBe(true);
 		expect(settings.conversionFolderLocation).toBe('folder');
 	});
 });

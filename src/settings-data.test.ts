@@ -17,6 +17,8 @@ describe('loading saved settings', () => {
 			ignore: DEFAULT_IGNORE_RULES,
 			verseBlocks: true,
 			liveConversion: false,
+			spokenReferences: false,
+			standardizeDictated: false,
 		});
 	});
 

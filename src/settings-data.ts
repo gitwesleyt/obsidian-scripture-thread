@@ -9,6 +9,10 @@ export interface ScriptureThreadSettings {
 	splitByTestament: boolean;
 	/** Show references in standard form, including in links already converted. */
 	standardizeReferences: boolean;
+	/** Also find references the way dictation writes them: "revelation three verses five through seven". */
+	spokenReferences: boolean;
+	/** Show a dictated reference in standard form; the ones you typed stay as typed. */
+	standardizeDictated: boolean;
 	/** What the convert commands skip, besides existing links. */
 	ignore: IgnoreRules;
 	/** Which folder the "convert in folder" command scans. */
@@ -30,6 +34,8 @@ export const DEFAULT_SETTINGS: ScriptureThreadSettings = {
 	notesFolder: 'Bible',
 	splitByTestament: true,
 	standardizeReferences: false,
+	spokenReferences: false,
+	standardizeDictated: false,
 	ignore: DEFAULT_IGNORE_RULES,
 	conversionFolderLocation: 'current',
 	conversionFolder: '',

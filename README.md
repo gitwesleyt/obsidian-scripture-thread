@@ -141,11 +141,17 @@ Links you've already converted are tidied the same way the next time you run a c
 `[[Psalms 23 1|Psalm 23:1]]`. Where a link points never changes, and link text that isn't a
 reference to the same passage — `[[John 3 16|this verse]]` — is left as you wrote it.
 
+**Dictated references.** Phone dictation writes `revelation three verses five through seven` where
+you would type `Revelation 3:5-7`. Turn on **Recognize dictated references** in Settings and those
+are found and linked too, by every command and by convert as you type — which links a dictated
+reference once you've moved off its line, the same moment as any other. See *Dictated
+references* below.
+
 **Convert as you type.** Turn this on in Settings and a reference you type or paste becomes a
 link as soon as you leave its line — press Enter, use an arrow key, or tap elsewhere — and its
 notes are created. Nothing changes while you're still on the line, so `John 3` isn't linked
 before you've typed `:16`. It follows the same rules as the commands: the skipped text, the alias
-form, and Standardize references.
+form, Standardize references and Transform dictated references.
 
 - **Undo turns the link back into the text you typed**, and it stays plain until you edit it.
   Any notes it created stay.
@@ -203,6 +209,41 @@ That makes it safe to run alongside other Bible-reference plugins that use those
 Each of these has a switch under **Convert commands: skipped text** in the plugin's settings, and you can add
 your own start/end markers there too (see Settings below).
 
+### Dictated references
+
+Off by default. With **Recognize dictated references** on, these are found after a book name:
+
+| Dictated | Links to |
+|---|---|
+| `John three`, `job two` | `John 3`, `Job 2` |
+| `Romans chapter 8 verse 28` | `Romans 8 28` |
+| `John 3 verses 16 to 18`, `…through 18` | `John 3 16-18` |
+| `Matthew 6 verses 1 to 3, 7 and 9` | `Matthew 6 1-3,7,9` |
+| `John three sixteen` | `John 3 16` |
+| `Psalm 23 to 25` | `Psalms 23-25` |
+| `first john four verse eight` | `1 John 4 8` |
+| `Psalm one hundred and nineteen` | `Psalms 119` |
+
+- **Only full book names.** With a chapter spoken as a word, an abbreviation is mostly English —
+  `my ex two years ago`, `Phil two doors down` — so `Ex`, `Phil` and `Dan` still want digits.
+- **Words like "it was a revelation to me" and "numbers don't lie" are left alone**, as is a date
+  such as `June 16`.
+- **The link keeps the words as spoken** — `[[Revelation 3 5-7|revelation three verses five
+  through seven]]` — unless you turn on **Transform dictated references**, which shows
+  `Revelation 3:5-7` instead, and does the same to links already converted from dictated words.
+  That switch is the only one that changes dictated words, and it changes only them: ones you
+  typed keep the text you wrote. **Standardize references** works on typed references only, so
+  `Rev 3` becomes `Revelation 3` but `revelation three` stays as spoken.
+- **The folder and whole-vault commands ask about the doubtful ones first.** Those rewrite many
+  notes at once where you can't see them, so a dictated reference that doesn't say `verse` —
+  `mark one`, `psalm twenty three` — is listed for you to untick if it's just words. Every one
+  starts ticked; an unticked one stays plain text, and you're asked again next time. `mark one
+  verse two` isn't doubtful. The current-note command and convert as you type don't ask: you're
+  looking at the line, and undo turns it back.
+- It can't tell you're dictating; it only reads what was written. A dictation revises its last
+  words for a moment after you stop speaking, which is why nothing converts until you leave the
+  line.
+
 Some things are always skipped, whatever the settings: existing wikilinks and embeds (so running
 a command twice is safe), Markdown links, and web addresses.
 
@@ -216,8 +257,14 @@ On Obsidian 1.13 and later, every setting below shows up in the settings search.
   `Bible`). Applies to every note the plugin creates, from all three commands.
 - **Split by testament** — files new notes into `Old Testament/` and `New Testament/` subfolders
   of that location. The two testament notes themselves sit at the location's root. On by default.
-- **Standardize references** — writes references in one standard form, including links you've
-  already converted (see Converting references). Off by default.
+- **Standardize references** — writes the references you typed in one standard form, including
+  links you've already converted (see Converting references). Dictated words are left as spoken.
+  Off by default.
+- **Recognize dictated references** — also finds references the way dictation writes them (see
+  Dictated references). Off by default.
+- **Transform dictated references** — shown only while the setting above is on. A dictated
+  reference's link reads `Revelation 3:5-7` instead of the spoken words, including links already
+  converted from dictated words; references you typed keep your text. Off by default.
 - **Convert as you type** — converts the references on a line when you leave it (see Converting
   references). Off by default.
 - **Verse blocks** — draws the border round verse blocks (see Verse blocks). On by default.

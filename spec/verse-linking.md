@@ -62,3 +62,49 @@ A reference inside an `http://`, `https://` or `www.` address is not tagged. Pas
 - **A full stop counts only with a digit straight after it.** `Sat with Psalm 23. Then prayed.` is still a whole chapter, and `John 3.400` is refused outright, the same way the colon refuses `John 3:400`.
 - **A space is the weaker signal.** The second number is read as a verse only if it could be one and does not begin a book name. Otherwise the chapter stands on its own: `John 3 400 people` is John 3, and `Genesis 1 2 Corinthians 5` is two references.
 - **The stated cost:** `Luke 2 3 times` is Luke 2:3. `verse-rules.test.ts` holds this as a test.
+
+## Dictated references, behind a setting
+
+Ported from the Bible Journal app's item 11.2. Phone dictation writes `revelation three verses five
+through seven` where a writer types `Revelation 3:5-7`. **With *Recognize dictated references* on,
+those are references too.** Off — the default — detection is exactly the typed grammar above and the
+dictated grammar never runs. Code: `src/spoken-verse-rules.ts`, number words in
+`src/spoken-numbers.ts`, reached through `scanText(text, { spoken: true })`.
+
+After a book name:
+
+| Dictated | Read as |
+|---|---|
+| `John three`, `job two` | John 3, Job 2 — a chapter spoken as a word counts exactly as digits do |
+| `Romans chapter 8 verse 28` | Romans 8:28 |
+| `John 3 verses 16 to 18`, `…through 18`, `…thru 18` | John 3:16–18 |
+| `Matthew 6 verses 1 to 3, 7 and 9` | Matthew 6:1–3, 7, 9 |
+| `John three sixteen` | John 3:16 |
+| `Psalm 23 to 25` | Psalms 23–25 |
+| `first john four verse eight`, `1st John four verse eight` | 1 John 4:8 |
+| `Psalm one hundred and nineteen`, `twenty-three` | 119, 23 — one to 176, a space or hyphen in a compound |
+
+- **Only full book names.** `Ex`, `Phil`, `Dan` and every other abbreviation stay with the typed
+  grammar, which wants digits. `Song of Songs` and `Revelations` count; `Song` alone does not. The
+  Roman forms are left out too: `I John four` is a pronoun more often than a book.
+- **`verse` leaves the chapter standing when no number follows**: `John 3 verses are…` is John 3.
+- **`and` joins verses only in a list opened by `verses`**, so `John 3:16 and 17 people` is John 3:16.
+- **A verse after a plain space only after a chapter spoken as a word**: `Psalm 23 one of my
+  favourites` is Psalm 23, not 23:1.
+- **A number word is read whole and greedily**: `onerous` holds no `one`, and `revelation three
+  hundred` is chapter 300 of a 22-chapter book — nothing — rather than Revelation 3. A word that
+  only exists on every JavaScript object (`constructor`) is not a number word.
+- **How it meets the typed scan.** A dictated match replaces a typed one only when it starts no
+  later, ends no earlier and is longer — the same reference read further, which is how
+  `John 3 verses 16 to 18` becomes John 3:16–18 where the typed grammar alone saw John 3. Anything
+  else that overlaps is dropped, and an equal reading keeps the typed one, so
+  `Philippians 4:13 to me` is untouched.
+
+### Doubtful, and what the plugin does with it
+
+A dictated match is *doubtful* unless it says `verse` or `verses`, which stands in for the colon.
+`mark one` and `psalm twenty three` are doubtful; `mark one verse two` is not. A match the typed
+grammar also makes at exactly the same characters is never dictated, so `jn 3:16` is never doubtful.
+The folder and whole-vault commands list the doubtful ones for review before writing; see
+`CLAUDE.md`, Feature 4. Nothing dictated is ever rewritten in place: the link's visible text is the
+spoken words, or the standard form with *Transform dictated references*. *Standardize references* never changes dictated words.
