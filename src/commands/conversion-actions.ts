@@ -83,7 +83,7 @@ async function approvedDictated(
 	const held = await findHeldReferences(plugin.app, plugin.settings, files);
 	progress.hide();
 
-	return held.length === 0 ? new Set<string>() : askAboutDictated(plugin.app, held);
+	return held.length === 0 ? new Set<string>() : askAboutDictated(plugin.app, held, plugin.settings.standardizeDictated);
 }
 
 export function openVaultConversion(plugin: SettingsHost): void {
@@ -91,6 +91,7 @@ export function openVaultConversion(plugin: SettingsHost): void {
 	const files = vaultFilesExcluding(plugin.app.vault, excludedFolders);
 
 	new VaultConversionModal(plugin.app, files.length, excludedFolders, {
+		transformsDictated: plugin.settings.spokenReferences && plugin.settings.standardizeDictated,
 		findDictated: plugin.settings.spokenReferences
 			? (options) => findHeldReferences(plugin.app, plugin.settings, files, options)
 			: undefined,

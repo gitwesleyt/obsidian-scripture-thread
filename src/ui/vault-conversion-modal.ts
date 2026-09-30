@@ -5,11 +5,14 @@ import {
 	type ConversionSummary,
 	type HeldMention,
 } from '../conversion/run-conversion';
+import { TRANSFORM_WARNING } from '../settings-text';
 import { renderDictatedReview, type ReviewAnswer } from './dictated-review';
 
 export type VaultConversionActions = {
 	/** Reads the notes for doubtful dictated references. Left out when dictation is not recognized. */
 	findDictated?: (options: BatchOptions) => Promise<HeldMention[]>;
+	/** Dictated words already in links will be rewritten, so the confirmation says so. */
+	transformsDictated?: boolean;
 	convert: (options: BatchOptions) => Promise<ConversionSummary>;
 };
 
@@ -63,6 +66,9 @@ export class VaultConversionModal extends Modal {
 				text: 'Dictated references are included. You will be asked about the doubtful ones first.',
 			});
 		}
+		if (this.actions.transformsDictated) {
+			contentEl.createEl('p', { text: TRANSFORM_WARNING, cls: 'mod-warning' });
+		}
 
 		contentEl.createEl('p', {
 			text: 'This cannot be undone. Consider backing up the vault first.',
@@ -109,7 +115,7 @@ export class VaultConversionModal extends Modal {
 
 		return new Promise((resolve) => {
 			this.cancelReview = () => resolve(null);
-			renderDictatedReview(this.contentEl, held, (answer) => {
+			renderDictatedReview(this.contentEl, held, this.actions.transformsDictated ?? false, (answer) => {
 				this.cancelReview = null;
 				resolve(answer);
 			});

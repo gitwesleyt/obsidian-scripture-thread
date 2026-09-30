@@ -240,6 +240,10 @@ Off by default. With **Recognize dictated references** on, these are found after
   starts ticked; an unticked one stays plain text, and you're asked again next time. `mark one
   verse two` isn't doubtful. The current-note command and convert as you type don't ask: you're
   looking at the line, and undo turns it back.
+- **With Transform on, the bulk commands also rewrite links you already made from dictated
+  words**, so the whole-vault confirmation and the review screen say so first. Cancel and turn it
+  off to keep those words as spoken. The folder command asks only when it has doubtful references
+  to ask about.
 - It can't tell you're dictating; it only reads what was written. A dictation revises its last
   words for a moment after you stop speaking, which is why nothing converts until you leave the
   line.
