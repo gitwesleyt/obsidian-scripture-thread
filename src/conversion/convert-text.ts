@@ -16,6 +16,7 @@ import {
 	type HeldReference,
 } from './references';
 import { standardizeLinks } from './standardize';
+import { hasUnderlineTag, underlineWrapperEdits } from './underline-wrappers';
 
 /** Replace `[from, to)` of the original text with `insert`. */
 export type TextEdit = { from: number; to: number; insert: string };
@@ -80,6 +81,7 @@ export function convertText(
 		!within || overlapsAny(within, toOriginal(from), toOriginal(to - 1) + 1);
 
 	const conversion: Conversion = { edits: [], chains: [], standardized: 0, held: [] };
+	const convertedReferences: Range[] = [];
 	let convertedUpTo = 0;
 
 	const lines = within && linesTouched(cleaned, within, toOriginal);
@@ -107,8 +109,11 @@ export function convertText(
 			conversion.chains.push(target.chain);
 		}
 
+		convertedReferences.push({ from: match.start, to: match.end });
 		convertedUpTo = match.end;
 	}
+
+	conversion.edits.push(...unwrappedUnderlines(cleaned, options, convertedReferences, isWanted, toOriginal));
 
 	const kinds = {
 		typed: options.standardizeReferences,
@@ -123,11 +128,31 @@ export function convertText(
 			conversion.edits.push({ ...edit, from: toOriginal(edit.from), to: toOriginal(edit.to - 1) + 1 });
 		}
 		conversion.standardized = linkEdits.length;
-		// Links never overlap a converted reference (links are protected), so sorting is enough.
-		conversion.edits.sort((a, b) => a.from - b.from);
 	}
 
+	// Links never overlap a converted reference (links are protected), and a tag
+	// sits beside its reference, so sorting is enough.
+	conversion.edits.sort((a, b) => a.from - b.from);
+
 	return conversion;
+}
+
+function unwrappedUnderlines(
+	cleaned: string,
+	options: ConversionOptions,
+	convertedReferences: readonly Range[],
+	isWanted: (from: number, to: number) => boolean,
+	toOriginal: (offset: number) => number,
+): TextEdit[] {
+	if (!hasUnderlineTag(cleaned)) return [];
+
+	const skipped = skippedRegions(cleaned, options.ignore);
+
+	return underlineWrapperEdits(cleaned, skipped, convertedReferences, isWanted).map((edit) => ({
+		...edit,
+		from: toOriginal(edit.from),
+		to: toOriginal(edit.to - 1) + 1,
+	}));
 }
 
 function referencesIn(

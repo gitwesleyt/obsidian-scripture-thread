@@ -97,6 +97,12 @@ describe('converting only the text just typed', () => {
 		);
 	});
 
+	it('takes <u> off a reference the typed text overlaps, but not off one it does not', () => {
+		expect(typed('<u>John 3:16</u> and <u>Ps 23:1</u>', 'Ps 23:1')).toBe(
+			'<u>John 3:16</u> and [[Psalms 23 1|Ps 23:1]]',
+		);
+	});
+
 	it('still skips a reference inside a code block opened on an earlier line', () => {
 		const note = '```\nJohn 3:16\n```';
 		expect(typed(note, 'John 3:16')).toBe(note);
@@ -106,5 +112,38 @@ describe('converting only the text just typed', () => {
 		expect(typed('[[John 3 16|Jn 3.16]] and [[Psalms 23 1|Ps 23:1]]', 'Ps 23:1', standardize)).toBe(
 			'[[John 3 16|Jn 3.16]] and [[Psalms 23 1|Psalm 23:1]]',
 		);
+	});
+});
+
+describe('underline wrappers', () => {
+	it('takes <u> off a reference as it converts it', () => {
+		expect(converted('<u>Psalm 23:3</u>')).toBe('[[Psalms 23 3|Psalm 23:3]]');
+		expect(converted('<U>Ps 23:1; 30:2</U>')).toBe('[[Psalms 23 1|Ps 23:1]]; [[Psalms 30 2|30:2]]');
+	});
+
+	it('takes <u> off a verse or chapter link already in the note', () => {
+		expect(converted('**<u>[[Ephesians 5 15-17|Ephesians 5:15-17]]</u>**')).toBe(
+			'**[[Ephesians 5 15-17|Ephesians 5:15-17]]**',
+		);
+		expect(converted('<u>[[Psalms 23]]</u>')).toBe('[[Psalms 23]]');
+	});
+
+	it('keeps <u> that wraps more than the reference, or a link to anything else', () => {
+		expect(converted('<u>see Psalm</u> 23:3')).toBe('<u>see Psalm</u> 23:3');
+		expect(converted('Psalm <u>23:3</u>')).toBe('Psalm <u>23:3</u>');
+		expect(converted('<u>[[Psalms]]</u>')).toBe('<u>[[Psalms]]</u>');
+		expect(converted('<u>[[My notes|John 3:16]]</u>')).toBe('<u>[[My notes|John 3:16]]</u>');
+		expect(converted('<u>Psalm 23:3 today</u>')).toBe('<u>[[Psalms 23 3|Psalm 23:3]] today</u>');
+	});
+
+	it('leaves <u> inside skipped text alone', () => {
+		expect(converted('`<u>[[Psalms 23]]</u>`')).toBe('`<u>[[Psalms 23]]</u>`');
+		expect(converted('{<u>Psalm 23:3</u>}')).toBe('{<u>Psalm 23:3</u>}');
+	});
+
+	it('changes nothing the second time', () => {
+		const once = converted('<u>Psalm 23:3</u> and <u>John 3:16-18</u>');
+		expect(once).toBe('[[Psalms 23 3|Psalm 23:3]] and [[John 3 16-18|John 3:16-18]]');
+		expect(convertText(once).edits).toEqual([]);
 	});
 });
