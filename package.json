@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-scripture-thread",
-	"version": "1.4.1",
+	"version": "1.4.2",
 	"description": "Obsidian plugin: convert plain-text Bible references into links as you write or on demand, see your previous notes about a verse, and frame paragraphs that cite Bible references.",
 	"main": "main.js",
 	"type": "module",
