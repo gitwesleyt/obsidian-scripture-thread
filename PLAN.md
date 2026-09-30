@@ -611,13 +611,14 @@ plugin never touches the microphone.
 
 ## 4. Docs and release
 - [x] CLAUDE.md Feature 4, `spec/verse-linking.md`, README, CHANGELOG (Unreleased)
-- [ ] Beta through BRAT, then release (a minor: 1.4.0)
+- [x] Beta through BRAT (`1.4.0-beta.1`, `1.4.0-beta.2`: Standardize no longer touches dictated words; renamed to Transform), then release `1.4.0` (2026-09-30)
 
 ## Verification
 - [x] `npm run check`: build, lint 0 errors (the same 8 warnings), all tests green
 - [ ] Manual, on the Mac, in the test vault: switch on, type `john three sixteen`, Enter → linked,
       notes created; undo → plain and stays plain; `first john four verse eight` with Transform → `[[1 John 4 8|1 John 4:8]]`; switch off → nothing converts
-- [ ] Manual, on the iPhone and iPad, with the real dictation button: dictate a paragraph with
+- [x] Manual, on the iPhone, with the real dictation button (beta 2: works)
+- [ ] Manual, on the iPad, with the real dictation button: dictate a paragraph with
       `revelation three verses five through seven`, tap Done and tap elsewhere → converted only
       after the caret has left; **check that dictation revising its last words never fights a
       conversion** (the web app could not test this either)

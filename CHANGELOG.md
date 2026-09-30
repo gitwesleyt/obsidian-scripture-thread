@@ -7,6 +7,8 @@ follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-09-30
+
 ### Added
 - **Recognize dictated references** setting, off by default: references the way phone dictation
   writes them — `revelation three verses five through seven`, `John three sixteen`, `first john
@@ -19,6 +21,10 @@ follows [Semantic Versioning](https://semver.org/).
 - The **folder** and **whole-vault** commands ask about the doubtful dictated references first
   (those that don't say `verse`, like `mark one`), all ticked to start with. Unticked ones stay
   plain text.
+
+### Fixed
+- A number word could match a name every JavaScript object has, so `John constructor` produced a
+  garbled reference. Only real number words count now.
 
 ## [1.3.2] - 2026-09-29
 
