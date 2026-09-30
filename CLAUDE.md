@@ -58,6 +58,8 @@ chain.
 - A semicolon reference gets one link per chapter:
   `[[Proverbs 17 7|Proverbs 17:7]]; [[Proverbs 30 22|30:22]]`.
 - Everything the detector finds is converted, lowercase book names included — no extra filter.
+  (The one exception is Feature 4: the folder and vault commands ask about doubtful *dictated*
+  references first.)
 - Three separate commands, each independently hotkey-able:
   1. Convert references in **this document**
   2. Convert references in **a folder** — which folder is a setting with two options, *Same
@@ -140,6 +142,44 @@ Live Preview, Source mode and Reading view, on Mac, iPhone and iPad. Full rules:
 Reading view; Enter grows it at once and Enter again closes it with the animation, leaving the
 next paragraph outside; all of it on Mac and on iOS with both keyboards.
 
+### Feature 4: Dictated references
+Phone dictation writes `revelation three verses five through seven`, not `Revelation 3:5-7`.
+Ported from the Bible Journal web app's Wave 11 (items 11.1–11.4), mapped onto what a plugin has:
+there are no tags to store, so the "chips" are the links Feature 2 writes. Rules:
+`spec/verse-linking.md`, "Dictated references"; build plan: `PLAN.md`, "Dictated references".
+
+- **Setting: recognize dictated references** (off by default). Off means detection is exactly the
+  typed grammar — the dictated grammar (`src/spoken-verse-rules.ts`, number words in
+  `src/spoken-numbers.ts`) never runs. On, every convert command and convert as you type also
+  find `John three sixteen`, `Romans chapter 8 verse 28`, `John 3 verses 16 to 18`,
+  `Psalm 23 to 25`, `first john four verse eight`. **Only full book names**: with a spoken
+  chapter an abbreviation is mostly English (`my ex two years ago`).
+- **A chapter spoken as a word counts exactly as digits do** (`job two` is Job 2) — the app owner's
+  standing call, carried over.
+- **A dictated match replaces a typed one only when it starts no later, ends no earlier and is
+  longer**; an equal reading keeps the typed one (`mergeSpokenMatches`). A match is *dictated*
+  when the typed grammar makes no match at exactly those characters.
+- **The alias is the words as spoken**, like a typed one, unless the second setting is on.
+- **Setting: write dictated references the usual way** (off by default, shown only while the first
+  is on) — Feature 11.4 in the web app. A dictated reference's alias is the standard form
+  (`[[Revelation 3 5-7|Revelation 3:5-7]]`); typed ones keep their text. It's the web app's
+  rewrite-when-the-caret-leaves rule met by convert as you type, which already converts when the
+  caret leaves the line, so no editor extension was ported.
+- **Doubtful dictated references** — those with no `verse`/`verses` in them (`mark one`,
+  `psalm twenty three`) — are asked about by the **folder and whole-vault commands** before they
+  rewrite anything, on one screen grouped by reference, every row ticked to start with. Unticked
+  ones stay plain text and are asked about again next time (nothing is stored). The current-note
+  command and convert as you type never ask: the writer is looking at the line and undo works.
+  The vault modal reads the notes, asks, then converts, each with progress.
+- **Standardize references** also tidies existing links whose visible text is dictated words, but
+  only while recognizing is on.
+- The plugin never listens to the microphone or decides whether dictation is running. It reads
+  text. Nothing is sent anywhere.
+
+**Done when:** with the setting on, `revelation three verses five through seven` becomes a link to
+`Revelation 3 5-7` by the current-note command and by convert as you type; the vault command lists
+`mark one` for review before rewriting; with the setting off, none of it changes.
+
 ## Explicitly out of scope — do not build these
 
 - Populating verse notes with real scripture text (depends on a translation source, not decided)
@@ -151,7 +191,9 @@ If a task seems to require one of these, stop and flag it rather than building i
 ## Files ported from the web app (Bible Journal project)
 
 **Ported 2026-09-25.** The copies in `src/` and `spec/` are now the only source of truth — do not
-read or reference the web app repo again. Since the port, the detector also accepts `John 3.16`
+read or reference the web app repo again. (Feature 4 was ported from it on 2026-09-30 at the app
+owner's request: `spoken-numbers.ts`, `spoken-verse-rules.ts` and its test. The same rule applies
+to those copies. `verse-rules.ts` gained exports and the `{ spoken }` scan option, nothing else.) Since the port, the detector also accepts `John 3.16`
 and `Romans 8 28` (dot and space in place of the colon); `spec/verse-linking.md` records the rules.
 The original porting notes follow.
 

@@ -3,9 +3,11 @@ import {
 	convertEditor,
 	convertFiles,
 	describeSummary,
+	findHeldReferences,
 } from '../conversion/run-conversion';
 import { markdownFilesIn, vaultFilesExcluding } from '../conversion/scope';
 import type { SettingsHost } from '../settings';
+import { askAboutDictated } from '../ui/dictated-review';
 import { VaultConversionModal } from '../ui/vault-conversion-modal';
 
 export async function convertCurrentNote(
@@ -55,19 +57,43 @@ function specifiedFolder(plugin: SettingsHost): TFolder | null {
 
 export async function convertFolder(plugin: SettingsHost, folder: TFolder): Promise<void> {
 	const files = markdownFilesIn(plugin.app.vault, folder);
-	const progress = new Notice(`Converting Bible references in ${folder.path}…`, 0);
 
-	const summary = await convertFiles(plugin.app, plugin.settings, files);
+	const approved = await approvedDictated(plugin, files, folder);
+	if (approved === null) return;
+
+	const progress = new Notice(`Converting Bible references in ${folder.path}…`, 0);
+	const summary = await convertFiles(plugin.app, plugin.settings, files, { approved });
 
 	progress.hide();
 	new Notice(describeSummary(summary));
+}
+
+/**
+ * What the writer approved of the doubtful dictated references in these notes:
+ * undefined when dictation is not recognized, null when they backed out.
+ */
+async function approvedDictated(
+	plugin: SettingsHost,
+	files: readonly TFile[],
+	folder: TFolder,
+): Promise<Set<string> | null | undefined> {
+	if (!plugin.settings.spokenReferences) return undefined;
+
+	const progress = new Notice(`Looking for dictated references in ${folder.path}…`, 0);
+	const held = await findHeldReferences(plugin.app, plugin.settings, files);
+	progress.hide();
+
+	return held.length === 0 ? new Set<string>() : askAboutDictated(plugin.app, held);
 }
 
 export function openVaultConversion(plugin: SettingsHost): void {
 	const { excludedFolders } = plugin.settings;
 	const files = vaultFilesExcluding(plugin.app.vault, excludedFolders);
 
-	new VaultConversionModal(plugin.app, files.length, excludedFolders, (options) =>
-		convertFiles(plugin.app, plugin.settings, files, options),
-	).open();
+	new VaultConversionModal(plugin.app, files.length, excludedFolders, {
+		findDictated: plugin.settings.spokenReferences
+			? (options) => findHeldReferences(plugin.app, plugin.settings, files, options)
+			: undefined,
+		convert: (options) => convertFiles(plugin.app, plugin.settings, files, options),
+	}).open();
 }

@@ -2,12 +2,15 @@ import type { App, Editor, TFile } from 'obsidian';
 import { applyEdits, convertText, type Conversion, type ConversionOptions } from './convert-text';
 import { NoteCreator } from './note-creator';
 import type { NoteLocation } from './note-names';
+import { heldKey, type HeldReference } from './references';
 
 export type ConversionSummary = {
 	filesChanged: number;
 	linksCreated: number;
 	linksStandardized: number;
 	notesCreated: number;
+	/** Doubtful dictated references left as text, because nobody said yes to them. */
+	referencesHeld: number;
 	failedPaths: string[];
 	stoppedEarly: boolean;
 };
@@ -18,7 +21,15 @@ export type ConversionSettings = NoteLocation & ConversionOptions;
 export type BatchOptions = {
 	onProgress?: (done: number, total: number, file: TFile) => void;
 	isStopped?: () => boolean;
+	/**
+	 * The doubtful dictated references that may become links, as `heldKey`s.
+	 * Given, every other doubtful one stays text; left out, they all convert.
+	 */
+	approved?: ReadonlySet<string>;
 };
+
+/** A doubtful dictated reference, and the note it is in. */
+export type HeldMention = HeldReference & { path: string };
 
 /**
  * The open note, edited through the editor in one transaction so a single
@@ -50,6 +61,7 @@ export async function convertEditor(
 		linksCreated: conversion.chains.length,
 		linksStandardized: conversion.standardized,
 		notesCreated: creator.createdCount,
+		referencesHeld: 0,
 		failedPaths: [],
 		stoppedEarly: false,
 	};
@@ -68,6 +80,7 @@ export async function convertFiles(
 		linksCreated: 0,
 		linksStandardized: 0,
 		notesCreated: 0,
+		referencesHeld: 0,
 		failedPaths: [],
 		stoppedEarly: false,
 	};
@@ -79,12 +92,13 @@ export async function convertFiles(
 		}
 
 		try {
-			const conversion = await convertFile(app, file, settings);
+			const conversion = await convertFile(app, file, withApproval(settings, file, options.approved));
 			await ensureChains(creator, conversion, file.path);
 
 			if (conversion.edits.length > 0) summary.filesChanged += 1;
 			summary.linksCreated += conversion.chains.length;
 			summary.linksStandardized += conversion.standardized;
+			summary.referencesHeld += conversion.held.length;
 		} catch {
 			summary.failedPaths.push(file.path);
 		}
@@ -107,6 +121,9 @@ export function describeSummary(summary: ConversionSummary): string {
 			` and created ${count(summary.notesCreated, 'new note')}.`,
 	];
 
+	if (summary.referencesHeld > 0) {
+		sentences.push(`Left ${count(summary.referencesHeld, 'dictated reference')} as text.`);
+	}
 	if (summary.stoppedEarly) sentences.push('Stopped before the end.');
 	if (summary.failedPaths.length > 0) sentences.push(describeFailures(summary.failedPaths));
 
@@ -126,8 +143,8 @@ function describeFailures(paths: readonly string[]): string {
  * touch the modified time of every note that had nothing to convert.
  */
 async function convertFile(app: App, file: TFile, options: ConversionOptions): Promise<Conversion> {
-	const unchanged: Conversion = { edits: [], chains: [], standardized: 0 };
-	if (convertText(await app.vault.cachedRead(file), options).edits.length === 0) return unchanged;
+	const unchanged = convertText(await app.vault.cachedRead(file), options);
+	if (unchanged.edits.length === 0) return unchanged;
 
 	let conversion = unchanged;
 	await app.vault.process(file, (data) => {
@@ -136,6 +153,51 @@ async function convertFile(app: App, file: TFile, options: ConversionOptions): P
 	});
 
 	return conversion;
+}
+
+/** The options for one note: a doubtful dictated reference converts only where it was approved. */
+function withApproval(
+	settings: ConversionOptions,
+	file: TFile,
+	approved: ReadonlySet<string> | undefined,
+): ConversionOptions {
+	if (!approved) return settings;
+	return { ...settings, holdBack: (source) => !approved.has(heldKey(file.path, source)) };
+}
+
+/**
+ * The doubtful dictated references in these notes, for the writer to answer
+ * before a bulk run rewrites them. Reads only; nothing is changed.
+ *
+ * One entry per note and wording, since an answer is given to both alike.
+ */
+export async function findHeldReferences(
+	app: App,
+	settings: ConversionOptions,
+	files: readonly TFile[],
+	options: BatchOptions = {},
+): Promise<HeldMention[]> {
+	const held: HeldMention[] = [];
+
+	for (const [index, file] of files.entries()) {
+		if (options.isStopped?.()) break;
+
+		const { held: inNote } = convertText(await app.vault.cachedRead(file), {
+			...settings,
+			holdBack: () => true,
+		});
+		const seen = new Set<string>();
+
+		for (const reference of inNote) {
+			if (seen.has(reference.source)) continue;
+			seen.add(reference.source);
+			held.push({ ...reference, path: file.path });
+		}
+
+		options.onProgress?.(index + 1, files.length, file);
+	}
+
+	return held;
 }
 
 async function ensureChains(

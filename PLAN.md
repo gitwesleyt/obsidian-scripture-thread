@@ -556,6 +556,78 @@ Tried in `1.3.0-beta.1` (2026-09-28): looks good.
 
 ---
 
+# Dictated references
+
+Brings the Bible Journal app's Wave 11 (Voice to text, items 11.1–11.4) over. Scope and rules: CLAUDE.md,
+Feature 4; grammar in `spec/verse-linking.md`, "Dictated references". Phone dictation writes words
+where a writer types punctuation, so this is detection plus two switches and one review; the
+plugin never touches the microphone.
+
+## Mapping from the web app
+| Web app | Here |
+|---|---|
+| 11.2 recognize dictated references (a switch) | **Recognize dictated references**; the grammar is ported unchanged, and `scanText(text, { spoken })` |
+| 11.4 rewrite the words once the caret has left the paragraph | **Write dictated references the usual way**: the link's visible text is the standard form. Convert as you type already fires when the caret leaves the line, so no editor extension. A first design, an in-place rewrite of the words, was dropped: the alias form keeps the text as spoken by default, and Standardize already covers rewriting |
+| 11.3 scan the journal, review the doubtful ones | The folder and whole-vault commands read first, ask about doubtful dictated references, then convert. There is no tag store to update, and no "removed" state to remember, so an unticked reference stays text and is asked about again |
+| Rewrite skips a reference the writer clicked away / undid | Not needed: undo turns a live conversion back to plain text and it stays plain (touched-ranges), and an unticked reference is never converted |
+
+## Decisions
+- [x] Off by default, and off means off: the dictated grammar never runs
+- [x] The current-note command and convert as you type convert every dictated reference without
+      asking (the writer sees the line; undo works). The review is only for the two bulk commands
+- [x] Doubtful = a dictated match with no `verse`/`verses`. A typed match is never doubtful
+- [x] Nothing is stored about answers: no list of declined references to reset
+- [x] The second switch is shown only while the first is on, and its stored value is kept
+
+## 1. Grammar (ported, tested)
+- [x] `src/spoken-numbers.ts`, `src/spoken-verse-rules.ts`, `src/spoken-verse-rules.test.ts`
+      (52 tests, including the app owner's own dictated paragraph); relative imports; type
+      narrowing for `noUncheckedIndexedAccess`; literal odd spaces written as escapes
+- [x] `verse-rules.ts`: exports only (`GAP`, `DASH`, `bookNamed`, `spellingsPattern`,
+      `startsABookName`, `insideWebAddress`, `verseMatch`, `Span`, `Tail`) and the `{ spoken }`
+      option on `scanText`, `activeMatches`, `keptRemovals`. `verse-rules.test.ts` passes unchanged
+- [x] **Fixed a bug in the original:** `john constructor` read `constructor` as a number word
+      (`in` on a plain object also matches inherited names), giving a reference called
+      `John function Object() {...}`. Own-property lookups, and a test
+
+## 2. Conversion
+- [x] `src/conversion/references.ts`: `findReferences` (which matches are dictated),
+      `isDoubtfulDictated`, `heldReference`, `heldKey`, `groupByReference`
+- [x] `convertText`: `spokenReferences`, `standardizeDictated`, and a `holdBack` predicate that
+      leaves a doubtful dictated reference as text and reports it in `held`
+- [x] `standardizeLinks` / `parseReference` take `spoken`, so existing links showing dictated
+      words are tidied too
+- [x] `run-conversion.ts`: `BatchOptions.approved`, `findHeldReferences`, `referencesHeld` in
+      the summary ("Left 1 dictated reference as text.")
+- [x] Tests: `dictated-conversion.test.ts` (35), plus 8 in `run-conversion.test.ts`
+
+## 3. Settings and UI
+- [x] `spokenReferences`, `standardizeDictated` in `settings-data.ts`, `settings-text.ts`,
+      `settings-definitions.ts` (1.13) and `settings.ts` (`display()`)
+- [x] `src/ui/dictated-review.ts`: the review, drawn in a modal of its own for the folder command
+      and inside the vault modal after a reading step; styles use theme variables only
+- [x] Vault modal: confirmation mentions dictation; reading, review, converting, each with
+      progress and Stop
+
+## 4. Docs and release
+- [x] CLAUDE.md Feature 4, `spec/verse-linking.md`, README, CHANGELOG (Unreleased)
+- [ ] Beta through BRAT, then release (a minor: 1.4.0)
+
+## Verification
+- [x] `npm run check`: build, lint 0 errors (the same 8 warnings), all tests green
+- [ ] Manual, on the Mac, in the test vault: switch on, type `john three sixteen`, Enter → linked,
+      notes created; undo → plain and stays plain; `first john four verse eight` with the second
+      switch → `[[1 John 4 8|1 John 4:8]]`; switch off → nothing converts
+- [ ] Manual, on the iPhone and iPad, with the real dictation button: dictate a paragraph with
+      `revelation three verses five through seven`, tap Done and tap elsewhere → converted only
+      after the caret has left; **check that dictation revising its last words never fights a
+      conversion** (the web app could not test this either)
+- [ ] Manual: the vault command with a `mark one` in a note lists it; unticked stays text; the
+      ticked ones convert; the folder command and the right-click item do the same; cancel
+      changes nothing; a long list scrolls; the review reads in a dark theme
+
+---
+
 # Housekeeping and small improvements
 
 - [x] Delete the merged `feature/live-conversion` branch, locally and on GitHub

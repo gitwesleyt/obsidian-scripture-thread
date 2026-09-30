@@ -1,5 +1,5 @@
 import { BIBLE_BOOKS } from './bible-books';
-import { findVerseReferences, verseKey } from './verse-rules';
+import { scanText, verseKey } from './verse-rules';
 
 /** A link, or a piece of text, that is wholly one verse or chapter reference. */
 export type BibleLink = {
@@ -17,6 +17,7 @@ export type BibleLink = {
 };
 
 const parsed = new Map<string, BibleLink | null>();
+const parsedSpoken = new Map<string, BibleLink | null>();
 
 /**
  * Reads a link target, or a note path, as a Bible reference.
@@ -30,12 +31,14 @@ export function parseBibleLink(linkpath: string): BibleLink | null {
 
 /**
  * The same test for a piece of text, such as a link's visible text. Results are
- * remembered, since the same names come up on every caret move.
+ * remembered, since the same names come up on every caret move. With `spoken`,
+ * the words a writer dictated count as a reference too.
  */
-export function parseReference(text: string): BibleLink | null {
+export function parseReference(text: string, spoken = false): BibleLink | null {
 	const trimmed = text.trim();
-	if (!parsed.has(trimmed)) parsed.set(trimmed, readReference(trimmed));
-	return parsed.get(trimmed) ?? null;
+	const remembered = spoken ? parsedSpoken : parsed;
+	if (!remembered.has(trimmed)) remembered.set(trimmed, readReference(trimmed, spoken));
+	return remembered.get(trimmed) ?? null;
 }
 
 /** Both name exactly the same verses, or the same chapters. */
@@ -43,8 +46,8 @@ export function samePassage(a: BibleLink, b: BibleLink): boolean {
 	return a.keys.length === b.keys.length && a.keys.every((key) => b.keys.includes(key));
 }
 
-function readReference(text: string): BibleLink | null {
-	const matches = findVerseReferences(text);
+function readReference(text: string, spoken: boolean): BibleLink | null {
+	const matches = scanText(text, { spoken });
 	const match = matches[0];
 	if (matches.length !== 1 || !match || match.start !== 0 || match.end !== text.length) {
 		return null;

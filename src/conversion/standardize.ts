@@ -15,8 +15,10 @@ const STARTS_WITH_NUMBER = /^\d/;
  *
  * Where the link points never changes, and text that isn't a reference to the
  * same passage -- `[[John 3 16|this verse]]` -- is the writer's own and is kept.
+ * With `spoken`, visible text a writer dictated -- `john three sixteen` -- is a
+ * reference too.
  */
-export function standardizeLinks(text: string, skipped: readonly Range[]): LinkEdit[] {
+export function standardizeLinks(text: string, skipped: readonly Range[], spoken = false): LinkEdit[] {
 	const edits: LinkEdit[] = [];
 
 	for (const found of text.matchAll(WIKILINK)) {
@@ -26,7 +28,7 @@ export function standardizeLinks(text: string, skipped: readonly Range[]): LinkE
 		if (embed || overlapsAny(skipped, from, to)) continue;
 
 		const link = parseBibleLink(linkpathOf(target));
-		const standard = link && standardTextFor(link, target, visible);
+		const standard = link && standardTextFor(link, target, visible, spoken);
 		if (standard && standard !== visible) {
 			edits.push({ from, to, insert: `[[${target}|${standard}]]` });
 		}
@@ -35,15 +37,20 @@ export function standardizeLinks(text: string, skipped: readonly Range[]): LinkE
 	return edits;
 }
 
-function standardTextFor(link: BibleLink, target: string, visible: string | undefined): string | null {
+function standardTextFor(
+	link: BibleLink,
+	target: string,
+	visible: string | undefined,
+	spoken: boolean,
+): string | null {
 	// A bare link to a heading shows the heading too, which a standard reference would hide.
 	if (visible === undefined) return target.includes('#') ? null : link.reference;
 
-	const typed = parseReference(visible);
+	const typed = parseReference(visible, spoken);
 	if (typed) return samePassage(typed, link) ? link.reference : null;
 
 	// "30:22" in "Proverbs 17:7; 30:22" -- a later chapter of the same book, which stays short.
 	if (!STARTS_WITH_NUMBER.test(visible.trim())) return null;
-	const continued = parseReference(`${link.book} ${visible}`);
+	const continued = parseReference(`${link.book} ${visible}`, spoken);
 	return continued && samePassage(continued, link) ? link.passage : null;
 }

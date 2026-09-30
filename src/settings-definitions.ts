@@ -43,6 +43,8 @@ export function settingDefinitions(
 				},
 				toggle(TEXT.splitByTestament, 'splitByTestament'),
 				toggle(TEXT.standardizeReferences, 'standardizeReferences'),
+				toggle(TEXT.spokenReferences, 'spokenReferences'),
+				{ ...toggle(TEXT.standardizeDictated, 'standardizeDictated'), visible: () => settings.spokenReferences },
 				toggle(TEXT.liveConversion, 'liveConversion'),
 				toggle(TEXT.verseBlocks, 'verseBlocks'),
 			],
@@ -133,6 +135,8 @@ export type SettingKey =
 	| 'notesFolder'
 	| 'splitByTestament'
 	| 'standardizeReferences'
+	| 'spokenReferences'
+	| 'standardizeDictated'
 	| 'liveConversion'
 	| 'verseBlocks'
 	| 'conversionFolderLocation'
@@ -140,7 +144,13 @@ export type SettingKey =
 	| 'excludedFolders'
 	| `ignore.${IgnoreSwitch}`;
 
-type SwitchKey = 'splitByTestament' | 'standardizeReferences' | 'liveConversion' | 'verseBlocks';
+type SwitchKey =
+	| 'splitByTestament'
+	| 'standardizeReferences'
+	| 'spokenReferences'
+	| 'standardizeDictated'
+	| 'liveConversion'
+	| 'verseBlocks';
 
 const IGNORE_PREFIX = 'ignore.';
 
@@ -177,6 +187,8 @@ export function writeSetting(settings: ScriptureThreadSettings, key: string, val
 			break;
 		case 'splitByTestament':
 		case 'standardizeReferences':
+		case 'spokenReferences':
+		case 'standardizeDictated':
 		case 'liveConversion':
 		case 'verseBlocks':
 			settings[key as SwitchKey] = value === true;

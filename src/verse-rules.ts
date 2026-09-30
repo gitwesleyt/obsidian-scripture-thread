@@ -1,4 +1,5 @@
 import { BIBLE_BOOKS, MAX_VERSE_NUMBER, type BibleBook } from "./bible-books";
+import { findSpokenVerseReferences, mergeSpokenMatches } from "./spoken-verse-rules";
 
 /**
  * Finding Bible references in ordinary writing.
@@ -251,10 +252,10 @@ for (const book of BIBLE_BOOKS) {
  * (`hidden-characters.ts`). `\s` is not usable here: it includes the newline,
  * and a newline is what ends a reference.
  */
-const GAP = "[ \\u00a0\\u2000-\\u200a\\u202f\\u205f\\u3000]";
+export const GAP = "[ \\u00a0\\u2000-\\u200a\\u202f\\u205f\\u3000]";
 
 /** Hyphen, en dash, em dash and the rest: all of them mean "to". */
-const DASH = "[-\\u2010-\\u2015]";
+export const DASH = "[-\\u2010-\\u2015]";
 
 /**
  * The book name and its chapter, built from the book list rather than written
@@ -273,7 +274,17 @@ const DASH = "[-\\u2010-\\u2015]";
  * then stop, because the rest was not understood" has to be decided.
  */
 function bookNames(): string {
-  return [...new Set(SPELLINGS)]
+  return spellingsPattern([...new Set(SPELLINGS)]);
+}
+
+/** The book a spelling names, however it was cased or spaced. */
+export function bookNamed(spelling: string): BibleBook | undefined {
+  return BY_NAME.get(normalizeName(spelling));
+}
+
+/** Spellings as one alternation, longest first, any space matching any `GAP`. */
+export function spellingsPattern(spellings: readonly string[]): string {
+  return [...spellings]
     .sort((a, b) => b.length - a.length)
     .map((name) => name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/ /g, `${GAP}+`))
     .join("|");
@@ -300,7 +311,7 @@ const PATTERN = buildPattern();
  */
 const BOOK_NAME_HERE = new RegExp(`(?:${bookNames()})(?![a-z])`, "iy");
 
-function startsABookName(text: string, at: number): boolean {
+export function startsABookName(text: string, at: number): boolean {
   BOOK_NAME_HERE.lastIndex = at;
   return BOOK_NAME_HERE.test(text);
 }
@@ -314,10 +325,10 @@ function startsABookName(text: string, at: number): boolean {
  * chapter from the match it belongs to. Every span in a reference with no
  * semicolon in it simply carries the same one.
  */
-type Span = { chapter: number; first: number; last: number };
+export type Span = { chapter: number; first: number; last: number };
 
 /** What follows the chapter number. */
-type Tail =
+export type Tail =
   /** Nothing this understands: "Psalm 23". */
   | { kind: "chapter"; end: number }
   /** A chapter range: "Matthew 5-7". */
@@ -558,7 +569,7 @@ function closeSpan(
 const WEB_ADDRESS = /(?:https?:\/\/|www\.)[^\s]+/gi;
 
 /** True when `[start, end)` touches any web address in the text. */
-function insideWebAddress(text: string, start: number, end: number): boolean {
+export function insideWebAddress(text: string, start: number, end: number): boolean {
   // A cheap way out for the overwhelming majority of blocks, which have no
   // address in them at all -- this runs on every block on every scan.
   if (!text.includes("//") && !text.includes("www.")) return false;
@@ -620,19 +631,36 @@ export function findVerseReferences(text: string): VerseMatch[] {
 
     if (insideWebAddress(text, start, tail.end)) continue;
 
-    const verses = expand(book, chapter, tail);
-
-    matches.push({
-      start,
-      end: tail.end,
-      text: text.slice(start, tail.end),
-      reference: matchReference(book, chapter, tail),
-      verses,
-      keys: verses.map(verseKey),
-    });
+    matches.push(verseMatch(text, start, book, chapter, tail));
   }
 
   return matches;
+}
+
+/**
+ * One reference, from where it starts and what was read after its chapter.
+ *
+ * Shared with `spoken-verse-rules.ts`, which reads the words differently and
+ * hands back the same `Tail` -- so a dictated reference is expanded, capped and
+ * written back in canonical form by exactly the code a typed one is.
+ */
+export function verseMatch(
+  text: string,
+  start: number,
+  book: BibleBook,
+  chapter: number,
+  tail: Tail,
+): VerseMatch {
+  const verses = expand(book, chapter, tail);
+
+  return {
+    start,
+    end: tail.end,
+    text: text.slice(start, tail.end),
+    reference: matchReference(book, chapter, tail),
+    verses,
+    keys: verses.map(verseKey),
+  };
 }
 
 /** One tag per verse or chapter a reference covers, subject to the two caps. */
@@ -704,14 +732,35 @@ function expand(book: BibleBook, chapter: number, tail: Tail): VerseTag[] {
 const CACHE_LIMIT = 500;
 const cache = new Map<string, VerseMatch[]>();
 
-export function scanText(text: string): VerseMatch[] {
-  const hit = cache.get(text);
+/**
+ * What the caller has asked the scan to read.
+ *
+ * An argument, never a module-level flag, so the setting is read where the scan
+ * is asked for and left out means the typed grammar exactly as it always was.
+ */
+export type ScanOptions = {
+  /**
+   * Also read references the way dictation spells them -- `revelation three
+   * verses five through seven` -- which is `spoken-verse-rules.ts`, and never
+   * runs at all while this is false.
+   */
+  spoken?: boolean;
+};
+
+export function scanText(text: string, options: ScanOptions = {}): VerseMatch[] {
+  const spoken = options.spoken === true;
+
+  // Keyed on the switch as well as the words: the same paragraph has two
+  // answers, and a caller with the switch off must not be handed the other.
+  const key = spoken ? `spoken\u0000${text}` : text;
+  const hit = cache.get(key);
   if (hit) return hit;
 
-  const found = findVerseReferences(text);
+  const typed = findVerseReferences(text);
+  const found = spoken ? mergeSpokenMatches(typed, findSpokenVerseReferences(text)) : typed;
 
   if (cache.size >= CACHE_LIMIT) cache.clear();
-  cache.set(text, found);
+  cache.set(key, found);
 
   return found;
 }
@@ -728,8 +777,9 @@ export function scanText(text: string): VerseMatch[] {
 export function activeMatches(
   text: string,
   removed: readonly string[] | null | undefined,
+  options: ScanOptions = {},
 ): VerseMatch[] {
-  const matches = scanText(text);
+  const matches = scanText(text, options);
   if (!removed || removed.length === 0) return matches;
 
   const off = new Set(removed);
@@ -767,10 +817,11 @@ export function activeMatches(
 export function keptRemovals(
   text: string,
   removed: readonly string[] | null | undefined,
+  options: ScanOptions = {},
 ): string[] | null {
   if (!removed || removed.length === 0) return null;
 
-  const written = new Set(scanText(text).flatMap((match) => match.keys));
+  const written = new Set(scanText(text, options).flatMap((match) => match.keys));
   const kept = removed.filter((key) => written.has(key));
 
   return kept.length === removed.length ? null : kept;

@@ -1,5 +1,4 @@
 import { stripHiddenCharacters } from '../hidden-characters';
-import { findVerseReferences, type VerseMatch } from '../verse-rules';
 import { targetsFor } from './note-names';
 import {
 	DEFAULT_IGNORE_RULES,
@@ -9,6 +8,13 @@ import {
 	type IgnoreRules,
 	type Range,
 } from './protected-ranges';
+import {
+	findReferences,
+	heldReference,
+	isDoubtfulDictated,
+	type FoundReference,
+	type HeldReference,
+} from './references';
 import { standardizeLinks } from './standardize';
 
 /** Replace `[from, to)` of the original text with `insert`. */
@@ -18,11 +24,22 @@ export type ConversionOptions = {
 	ignore: IgnoreRules;
 	/** Show references in standard form, including in links already converted. */
 	standardizeReferences: boolean;
+	/** Also find references the way dictation writes them: "john three sixteen". */
+	spokenReferences: boolean;
+	/** Show a dictated reference in standard form, and leave the ones you typed as typed. */
+	standardizeDictated: boolean;
+	/**
+	 * Asked about every doubtful dictated reference, with its words; true leaves
+	 * it as text and reports it in `held`. Left out, every reference converts.
+	 */
+	holdBack?: (source: string) => boolean;
 };
 
 export const DEFAULT_CONVERSION_OPTIONS: ConversionOptions = {
 	ignore: DEFAULT_IGNORE_RULES,
 	standardizeReferences: false,
+	spokenReferences: false,
+	standardizeDictated: false,
 };
 
 export type Conversion = {
@@ -32,6 +49,8 @@ export type Conversion = {
 	chains: string[][];
 	/** How many existing links had their visible text standardized. */
 	standardized: number;
+	/** Doubtful dictated references `holdBack` left as text. */
+	held: HeldReference[];
 };
 
 /**
@@ -60,17 +79,25 @@ export function convertText(
 	const isWanted = (from: number, to: number) =>
 		!within || overlapsAny(within, toOriginal(from), toOriginal(to - 1) + 1);
 
-	const conversion: Conversion = { edits: [], chains: [], standardized: 0 };
+	const conversion: Conversion = { edits: [], chains: [], standardized: 0, held: [] };
 	let convertedUpTo = 0;
 
-	for (const match of referencesIn(cleaned, within && linesTouched(cleaned, within, toOriginal))) {
+	const lines = within && linesTouched(cleaned, within, toOriginal);
+	for (const found of referencesIn(cleaned, lines, options.spokenReferences)) {
+		const { match } = found;
 		if (match.start < convertedUpTo) continue;
 		if (overlapsAny(protectedRanges, match.start, match.end)) continue;
 		if (!isWanted(match.start, match.end)) continue;
 		if (within && insideUnfinishedLink(cleaned, match.start)) continue;
 
+		if (options.holdBack && isDoubtfulDictated(found) && options.holdBack(match.text)) {
+			conversion.held.push(heldReference(cleaned, found));
+			continue;
+		}
+
+		const standardForm = options.standardizeReferences || (options.standardizeDictated && found.dictated);
 		for (const target of targetsFor(match)) {
-			const alias = options.standardizeReferences ? target.standard : target.alias;
+			const alias = standardForm ? target.standard : target.alias;
 			conversion.edits.push({
 				from: toOriginal(target.from),
 				to: toOriginal(target.to - 1) + 1,
@@ -83,7 +110,8 @@ export function convertText(
 	}
 
 	if (options.standardizeReferences) {
-		const linkEdits = standardizeLinks(cleaned, skippedRegions(cleaned, options.ignore)).filter((edit) =>
+		const skipped = skippedRegions(cleaned, options.ignore);
+		const linkEdits = standardizeLinks(cleaned, skipped, options.spokenReferences).filter((edit) =>
 			isWanted(edit.from, edit.to),
 		);
 		for (const edit of linkEdits) {
@@ -97,14 +125,17 @@ export function convertText(
 	return conversion;
 }
 
-function referencesIn(text: string, lines: readonly Range[] | undefined): VerseMatch[] {
-	if (!lines) return findVerseReferences(text);
+function referencesIn(
+	text: string,
+	lines: readonly Range[] | undefined,
+	spoken: boolean,
+): FoundReference[] {
+	if (!lines) return findReferences(text, spoken);
 
 	return lines.flatMap(({ from, to }) =>
-		findVerseReferences(text.slice(from, to)).map((match) => ({
-			...match,
-			start: match.start + from,
-			end: match.end + from,
+		findReferences(text.slice(from, to), spoken).map(({ match, dictated }) => ({
+			dictated,
+			match: { ...match, start: match.start + from, end: match.end + from },
 		})),
 	);
 }

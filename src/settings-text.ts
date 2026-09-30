@@ -35,6 +35,14 @@ export const TEXT = {
 		name: 'Standardize references',
 		desc: 'Show every reference in one standard form: Ps 23:1 becomes Psalm 23:1, and Jn 3.16 becomes John 3:16. Also updates links you have already converted. Where a link points never changes.',
 	},
+	spokenReferences: {
+		name: 'Recognize dictated references',
+		desc: 'Also find references the way dictation writes them: "revelation three verses five through seven" or "John three sixteen". Every convert command and convert as you type use it. The folder and whole-vault commands ask about the doubtful ones first, such as "mark one", and leave the ones you untick as text.',
+	},
+	standardizeDictated: {
+		name: 'Write dictated references the usual way',
+		desc: 'A dictated reference becomes a link that reads Revelation 3:5-7 instead of the words as spoken. References you typed keep the text you wrote. Standardize references does the same for every reference.',
+	},
 	liveConversion: {
 		name: 'Convert as you type',
 		desc: 'Turn a reference you type into a link when you leave its line, and create its notes. Undo turns it back into plain text. Uses the skipped-text settings below, and does nothing in the whole-vault excluded folders.',
