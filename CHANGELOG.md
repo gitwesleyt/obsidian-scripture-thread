@@ -7,6 +7,13 @@ follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.4.3] - 2026-10-01
+
+### Fixed
+- A letter naming part of a verse is part of the reference: `Hebrews 12:1b`, `John 3:16a-18`,
+  `Psalm 23:1a, 3`. It stays in the link's visible text and links the verse's own note
+  (`Hebrews 12 1`); before, the letter was left outside the link and cut a range or list short.
+
 ## [1.4.2] - 2026-09-30
 
 ### Changed

@@ -589,6 +589,42 @@ describe("a full stop in place of the colon", () => {
   });
 });
 
+describe("a letter naming part of a verse", () => {
+  it("reads 12:1b as verse 1, and keeps the letter in what it reads back", () => {
+    const [match] = findVerseReferences("Hebrews 12:1b");
+
+    expect(match?.text).toBe("Hebrews 12:1b");
+    expect(match?.reference).toBe("Hebrews 12:1b");
+    expect(match?.keys).toEqual(["Hebrews|12|1"]);
+  });
+
+  it("takes a letter on either end of a range, and in a list", () => {
+    expect(referencesIn("John 3:16a-18")).toEqual(["John 3:16a-18"]);
+    expect(referencesIn("John 3:16-18b")).toEqual(["John 3:16-18b"]);
+    expect(referencesIn("Psalm 23:1a, 3")).toEqual(["Psalm 23:1a,3"]);
+    expect(referencesIn("Proverbs 17:7a; 30:22b")).toEqual(["Proverbs 17:7a; 30:22b"]);
+  });
+
+  it("tags the same verses with or without the letter", () => {
+    expect(findVerseReferences("John 3:16a-18")[0]?.keys).toEqual(
+      findVerseReferences("John 3:16-18")[0]?.keys,
+    );
+  });
+
+  it("works with the other separators", () => {
+    expect(referencesIn("John 3.16b")).toEqual(["John 3:16b"]);
+    expect(referencesIn("Romans 8 28b")).toEqual(["Romans 8:28b"]);
+  });
+
+  it("takes only a, b or c with nothing after it", () => {
+    expect(referencesIn("John 3:16 and more")).toEqual(["John 3:16"]);
+    expect(referencesIn("John 3:16and more")).toEqual(["John 3:16"]);
+    expect(referencesIn("Psalm 23:1abc")).toEqual(["Psalm 23:1"]);
+    expect(referencesIn("Psalm 23:1d")).toEqual(["Psalm 23:1"]);
+    expect(referencesIn("John 3:16b.")).toEqual(["John 3:16b"]);
+  });
+});
+
 describe("a space in place of the colon", () => {
   it("reads a second number as the verse", () => {
     expect(referencesIn("Romans 8 28 is my verse")).toEqual(["Romans 8:28"]);

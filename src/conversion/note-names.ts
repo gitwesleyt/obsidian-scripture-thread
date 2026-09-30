@@ -64,7 +64,7 @@ export function targetsFor(match: VerseMatch): LinkTarget[] {
 	return parts.map((part, index) => {
 		const piece = pieces[index] as Piece;
 		const standard = index === 0 ? `${displayName} ${part}` : part;
-		return { ...piece, standard, chain: chainFor(book, part) };
+		return { ...piece, standard, chain: chainFor(book, withoutPartOfVerse(part)) };
 	});
 }
 
@@ -93,6 +93,11 @@ function baseFolder(location: NoteLocation, sourcePath: string): string {
 		case 'folder':
 			return location.notesFolder;
 	}
+}
+
+// "1b" is part of verse 1, which has one note: "Hebrews 12 1", never "Hebrews 12 1b".
+function withoutPartOfVerse(part: string): string {
+	return part.replace(/(\d)[a-c]/g, '$1');
 }
 
 /** "23", "23:1-6", "5-7" or "6:1-3,7" -- one part of a canonical reference, book removed. */

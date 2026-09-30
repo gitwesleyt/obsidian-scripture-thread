@@ -40,6 +40,13 @@ Four changes to detection, all in `src/lib/verse-rules.ts` and so shared by the 
 - **A new book name after a semicolon is left to its own match.** `Proverbs 17:7; John 3:16` is two references, because book names are found anywhere in the text.
 - **The 20-verse cap still holds.** A chain is not a way past it.
 
+### A letter naming part of a verse (Obsidian port)
+
+`Hebrews 12:1b`, `John 3:16a-18` and `Psalm 23:1a, 3` are references, and the letter is part of what was typed: the link's visible text keeps it. It never changes which verse is meant, so `Hebrews 12:1b` tags Hebrews 12:1 and links the note `Hebrews 12 1`, the same as `Hebrews 12:1`. Standardizing keeps the letter too.
+
+- **Only `a`, `b` or `c`, and only when no letter follows.** `John 3:16and more` is John 3:16 followed by a word, and `Psalm 23:1abc` and `Psalm 23:1d` are Psalm 23:1 followed by text.
+- **On a verse only.** A chapter has no letter.
+
 ### A comma list stops at a numbered book (TD-98)
 
 `Jeremiah 7:1-2, 2 Corinthians 10:4` is two references: **Jeremiah 7:1–2 and 2 Corinthians 10:4**. A comma after a verse takes the next number as another verse of the list, and until TD-98 it took the `2` of `2 Corinthians` too — so the `2` belonged to two matches at once, Jeremiah 7:2 was counted twice, and the chip drawing split the overlap into three boxes.
