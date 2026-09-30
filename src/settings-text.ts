@@ -77,6 +77,10 @@ export const TEXT = {
 	},
 } satisfies Record<string, Text>;
 
+/** Said before a bulk run that will also rewrite dictated words already in links. */
+export const TRANSFORM_WARNING =
+	'Transform dictated references is on, so links you already made from dictated words will be rewritten too: revelation three verses five through seven becomes Revelation 3:5-7. If you would rather keep the words as you said them, cancel and turn it off in the settings first.';
+
 export const NOTES_LOCATION_LABELS: Record<NotesLocation, string> = {
 	root: 'Vault folder',
 	current: 'Same folder as current file',

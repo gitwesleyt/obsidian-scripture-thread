@@ -1,5 +1,6 @@
 import { Modal, Setting, type App } from 'obsidian';
 import { groupByReference, heldKey } from '../conversion/references';
+import { TRANSFORM_WARNING } from '../settings-text';
 import type { HeldMention } from '../conversion/run-conversion';
 
 /** The keys of the references the writer left ticked, or null when they backed out. */
@@ -13,6 +14,7 @@ export type ReviewAnswer = Set<string> | null;
 export function renderDictatedReview(
 	container: HTMLElement,
 	held: readonly HeldMention[],
+	transformsDictated: boolean,
 	decide: (answer: ReviewAnswer) => void,
 ): void {
 	container.empty();
@@ -25,6 +27,7 @@ export function renderDictatedReview(
 			'These dictated references could be ordinary words, not Bible references. ' +
 			'Untick any that are not; those stay as plain text.',
 	});
+	if (transformsDictated) container.createEl('p', { text: TRANSFORM_WARNING, cls: 'mod-warning' });
 	const summary = container.createEl('p', { cls: 'scripture-thread-review-summary' });
 	const list = container.createDiv({ cls: 'scripture-thread-review-list' });
 
@@ -94,6 +97,7 @@ class DictatedReviewModal extends Modal {
 	constructor(
 		app: App,
 		private readonly held: readonly HeldMention[],
+		private readonly transformsDictated: boolean,
 		private readonly answer: (answer: ReviewAnswer) => void,
 	) {
 		super(app);
@@ -101,7 +105,7 @@ class DictatedReviewModal extends Modal {
 
 	onOpen(): void {
 		this.setTitle('Check dictated references');
-		renderDictatedReview(this.contentEl, this.held, (answer) => this.finish(answer));
+		renderDictatedReview(this.contentEl, this.held, this.transformsDictated, (answer) => this.finish(answer));
 	}
 
 	onClose(): void {
@@ -118,6 +122,10 @@ class DictatedReviewModal extends Modal {
 }
 
 /** Opens the review on its own, for the command that has no dialog of its own. */
-export function askAboutDictated(app: App, held: readonly HeldMention[]): Promise<ReviewAnswer> {
-	return new Promise((resolve) => new DictatedReviewModal(app, held, resolve).open());
+export function askAboutDictated(
+	app: App,
+	held: readonly HeldMention[],
+	transformsDictated: boolean,
+): Promise<ReviewAnswer> {
+	return new Promise((resolve) => new DictatedReviewModal(app, held, transformsDictated, resolve).open());
 }

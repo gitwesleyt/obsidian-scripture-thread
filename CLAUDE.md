@@ -172,6 +172,10 @@ there are no tags to store, so the "chips" are the links Feature 2 writes. Rules
   ones stay plain text and are asked about again next time (nothing is stored). The current-note
   command and convert as you type never ask: the writer is looking at the line and undo works.
   The vault modal reads the notes, asks, then converts, each with progress.
+- **Warn before a bulk run rewrites dictated words** (the web app's TD-129): with Transform on,
+  the whole-vault confirmation and the review screen say that links already made from dictated
+  words will be rewritten, with cancel as the way out. The folder command has no dialog of its
+  own, so it warns only when the review opens.
 - **The two standardizing switches never overlap.** Standardize references changes only what was
   typed (`Rev 3` → `Revelation 3`, new conversions and existing links alike) and leaves dictated
   words as spoken; Transform dictated references changes only dictated words. Both on, both
