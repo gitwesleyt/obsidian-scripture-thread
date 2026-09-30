@@ -7,6 +7,13 @@ follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.4.2] - 2026-09-30
+
+### Changed
+- Converting a reference wrapped in `<u>…</u>` takes the tags off, and so does a run over an
+  existing verse or chapter link wrapped that way. Live Preview doesn't read Markdown inside inline
+  HTML, so a link left inside `<u>` showed as raw `[[…]]` text.
+
 ## [1.4.1] - 2026-09-30
 
 ### Changed
